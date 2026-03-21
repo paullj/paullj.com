@@ -18,7 +18,14 @@ jobs:
       - run: mise install go gofumpt
 
       - name: Format check
-        run: cd ssh && mise exec -- gofumpt -d . | grep -q . && echo 'needs formatting' && exit 1 || true
+        run: |
+          cd ssh
+          output=$(mise exec -- gofumpt -d . 2>/dev/null)
+          if [ -n "$output" ]; then
+            echo "$output"
+            echo 'needs formatting'
+            exit 1
+          fi
 
   lint:
     name: Lint
