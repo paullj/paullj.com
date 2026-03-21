@@ -4,9 +4,9 @@ Set Width 1600
 Set Height 1000
 Set Shell "bash"
 
-Type "ssh ssh.paullj.com"
+Type "ssh -o StrictHostKeyChecking=no ssh.paullj.com"
 Enter
-Sleep 4s
+Sleep 5s
 
 # Navigate to a recent post on the home page
 Type "j"

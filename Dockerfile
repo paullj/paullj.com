@@ -31,8 +31,9 @@ COPY --from=build /ssh.paullj.com /app/ssh.paullj.com
 COPY --from=build /app/image-cache /app/image-cache
 COPY config.yaml ./
 COPY --from=build /src/content/ content/
-RUN mkdir -p /data/keys && chown -R appuser:appuser /app /data/keys
+RUN apk add --no-cache su-exec && \
+    mkdir -p /data/keys && chown -R appuser:appuser /app /data/keys
+COPY entrypoint.sh /app/entrypoint.sh
 ENV PAULLJ_SSH_HOST_KEY_PATH=/data/keys/id_ed25519
 ENV PAULLJ_SSH_IMAGES_CACHE_DIR=/app/image-cache
-USER appuser
-ENTRYPOINT ["/app/ssh.paullj.com"]
+ENTRYPOINT ["/app/entrypoint.sh"]
