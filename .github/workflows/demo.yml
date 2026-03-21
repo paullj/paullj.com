@@ -21,15 +21,7 @@ jobs:
 
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg ttyd
 
-      - run: mise install go vhs
-
-      - name: Build server
-        run: cd ssh && mise exec -- go build -o ../ssh.paullj.com ./cmd/ssh.paullj.com
-
-      - name: Start server
-        run: |
-          ./ssh.paullj.com &
-          sleep 2
+      - run: mise install vhs
 
       - name: Generate demo GIF
         run: mise exec -- vhs docs/demo.tape
