@@ -4,6 +4,10 @@ A blog served over ssh, built with go, [bubble tea](https://github.com/charmbrac
 
 ![Demo](docs/demo.gif)
 
+```bash
+ssh ssh.paullj.com
+```
+
 ## Prerequisites
 
 - [mise](https://mise.jdx.dev) — manages all project tooling (go, linters, vhs, etc.)
