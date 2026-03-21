@@ -21,7 +21,7 @@ jobs:
         with:
           install: false
 
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg ttyd
 
       - run: mise install go vhs
 
