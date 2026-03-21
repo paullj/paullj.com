@@ -1,0 +1,46 @@
+[tools]
+go = "1.25"
+"golangci-lint" = "2"
+gofumpt = "latest"
+air = "latest"
+flyctl = "latest"
+vhs = "latest"
+ffmpeg = "latest"
+
+[tasks.dev]
+description = "Run with hot reload"
+run = "air -c ssh/.air.toml"
+
+[tasks.build]
+description = "Build binary"
+run = "cd ssh && go build -o ../ssh.paullj.com ./cmd/ssh.paullj.com"
+
+[tasks.run]
+description = "Build and run"
+depends = ["build"]
+run = "./ssh.paullj.com"
+
+[tasks.dev-ssh]
+description = "Connect to local SSH server"
+run = "ssh -o StrictHostKeyChecking=no -p 2222 localhost"
+
+[tasks.clean]
+description = "Remove build artifacts"
+run = "rm -f ssh.paullj.com id_ed25519 id_ed25519.pub"
+
+[tasks.lint]
+description = "Run linter"
+run = "cd ssh && golangci-lint run ./..."
+
+[tasks.fmt]
+description = "Format code"
+run = "cd ssh && gofumpt -w ."
+
+[tasks.check]
+description = "Lint + fmt check"
+depends = ["lint"]
+run = "cd ssh && gofumpt -d . | grep -q . && echo 'needs formatting' && exit 1 || true"
+
+[tasks.deploy]
+description = "Deploy to Fly"
+run = "flyctl deploy --remote-only"

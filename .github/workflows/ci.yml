@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+
+      - name: Format check
+        run: mise run check
+
+      - name: Lint
+        run: mise run lint
+
+      - name: Test
+        run: cd ssh && go test ./...
+
+      - name: Build
+        run: mise run build
