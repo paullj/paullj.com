@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+env:
+  GOMODCACHE: /home/runner/.cache/go-mod
+  MISE_AUTO_INSTALL: false
+
+jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: false
+
+      - run: mise install go gofumpt
+
+      - name: Format check
+        run: |
+          cd ssh
+          output=$(mise exec -- gofumpt -d .)
+          if [ -n "$output" ]; then
+            echo "$output"
+            echo 'needs formatting'
+            exit 1
+          fi
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: false
+
+      - run: mise install go golangci-lint
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            /home/runner/.cache/go-mod
+            /home/runner/.cache/go-build
+          key: go-${{ hashFiles('ssh/go.sum') }}
+          restore-keys: go-
+
+      - name: Lint
+        run: cd ssh && mise exec -- golangci-lint run ./...
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: false
+
+      - run: mise install go
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            /home/runner/.cache/go-mod
+            /home/runner/.cache/go-build
+          key: go-${{ hashFiles('ssh/go.sum') }}
+          restore-keys: go-
+
+      - name: Test
+        run: cd ssh && mise exec -- go test ./...
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: false
+
+      - run: mise install go
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            /home/runner/.cache/go-mod
+            /home/runner/.cache/go-build
+          key: go-${{ hashFiles('ssh/go.sum') }}
+          restore-keys: go-
+
+      - name: Build
+        run: cd ssh && mise exec -- go build -o ../ssh.paullj.com ./cmd/ssh.paullj.com

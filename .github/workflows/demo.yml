@@ -1,0 +1,49 @@
+name: Demo GIF
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  MISE_AUTO_INSTALL: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: false
+
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - run: mise install go vhs
+
+      - name: Build server
+        run: cd ssh && mise exec -- go build -o ../ssh.paullj.com ./cmd/ssh.paullj.com
+
+      - name: Start server
+        run: |
+          ./ssh.paullj.com &
+          sleep 2
+
+      - name: Generate demo GIF
+        run: mise exec -- vhs docs/demo.tape
+
+      - name: Commit demo GIF
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/demo.gif
+          if git diff --cached --quiet; then
+            echo "No changes to demo.gif"
+          else
+            git commit -m "chore: update demo gif"
+            git push
+          fi

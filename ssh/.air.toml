@@ -1,0 +1,14 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "cd ssh && go build -o ../tmp/ssh.paullj.com ./cmd/ssh.paullj.com"
+  entrypoint = "./tmp/ssh.paullj.com"
+  include_ext = ["go", "md", "yaml"]
+  include_dir = ["ssh/cmd", "ssh/internal", "content/posts"]
+  exclude_dir = ["tmp", "docs"]
+  kill_delay = "1s"
+  send_interrupt = true
+
+[log]
+  time = true

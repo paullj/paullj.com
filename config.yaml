@@ -1,0 +1,40 @@
+content:
+  name: "Paul Lavender-Jones"
+  subtitle: "Hi, I like to make things and sometimes I write about it here."
+  description: "A blog served over SSH"
+  recent_posts_limit: 5
+  about_path: "content/about.md"
+  posts_dir: "content/posts"
+  links:
+    - name: GitHub
+      url: https://github.com/paullj
+    - name: LinkedIn
+      url: https://linkedin.com/in/paullj
+    - name: Email
+      url: paul@lavender-jones.com
+
+ssh:
+  max_width: 110
+  host: "0.0.0.0"
+  port: "2222"
+  host_key_path: "id_ed25519"
+  idle_timeout: "5m"
+  max_timeout: "30m"
+  rate_limit: "1s"
+  rate_burst: 3
+  images:
+    max_size: 5242880
+    fetch_timeout: "10s"
+    cache_max_bytes: 52428800
+    max_ascii_width: 80
+  splash:
+    text: "paullj"
+    char_delay: "100ms"
+    char_jitter: "40ms"
+    hold_time: "900ms"
+    skip_on_key: true
+  filter:
+    max_concurrent_per_ip: 3
+    blocked_prefixes:
+      - "SSH-2.0-Go"
+      - "libssh"
