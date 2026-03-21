@@ -18,7 +18,9 @@ jobs:
         with:
           install: false
 
-      - run: mise install go vhs ffmpeg
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - run: mise install go vhs
 
       - name: Build server
         run: cd ssh && mise exec -- go build -o ../ssh.paullj.com ./cmd/ssh.paullj.com
