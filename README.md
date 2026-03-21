@@ -7,6 +7,7 @@ A blog served over ssh, built with go, [bubble tea](https://github.com/charmbrac
 ## Prerequisites
 
 - [mise](https://mise.jdx.dev) — manages all project tooling (go, linters, vhs, etc.)
+- [ffmpeg](https://ffmpeg.org) — required for VHS demo recording (install separately via your system package manager)
 
 ## Setup
 

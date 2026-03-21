@@ -5,7 +5,6 @@ gofumpt = "latest"
 air = "latest"
 flyctl = "latest"
 vhs = "latest"
-ffmpeg = "latest"
 
 [tasks.dev]
 description = "Run with hot reload"
