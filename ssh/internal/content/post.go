@@ -82,7 +82,7 @@ func RenderMarkdown(content string, width int, style string) (string, error) {
 
 // RenderMarkdownWithImages renders markdown and replaces image placeholders
 // with terminal-encoded images.
-func RenderMarkdownWithImages(content string, width int, style string, mode images.ImageMode, darkTheme bool, cache *images.Cache, diskCache *images.DiskCache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int) (string, error) {
+func RenderMarkdownWithImages(content string, width int, style string, mode images.ImageMode, darkTheme bool, cache *images.Cache, diskCache *images.DiskCache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int, contentDir string) (string, error) {
 	type imageRef struct {
 		marker string
 		alt    string
@@ -102,7 +102,7 @@ func RenderMarkdownWithImages(content string, width int, style string, mode imag
 	}
 
 	for _, ref := range refs {
-		encoded := resolveImage(ref.url, ref.alt, width, mode, darkTheme, cache, diskCache, maxSize, fetchTimeout, maxAsciiWidth)
+		encoded := resolveImage(ref.url, ref.alt, width, mode, darkTheme, cache, diskCache, maxSize, fetchTimeout, maxAsciiWidth, contentDir)
 		padded := regexp.MustCompile(`[^\n]*` + regexp.QuoteMeta(ref.marker) + `[^\n]*`)
 		rendered = padded.ReplaceAllLiteralString(rendered, encoded)
 	}
@@ -122,7 +122,7 @@ func ImageCacheKey(url string, width int, mode images.ImageMode, darkTheme bool,
 	return fmt.Sprintf("%s:%d:%d:%d", url, w, mode, themeKey)
 }
 
-func resolveImage(url, alt string, width int, mode images.ImageMode, darkTheme bool, cache *images.Cache, diskCache *images.DiskCache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int) string {
+func resolveImage(url, alt string, width int, mode images.ImageMode, darkTheme bool, cache *images.Cache, diskCache *images.DiskCache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int, contentDir string) string {
 	cacheKey := ImageCacheKey(url, width, mode, darkTheme, maxAsciiWidth)
 	if cached, ok := cache.Get(cacheKey); ok {
 		log.Printf("image cache hit (memory) %s", url)
@@ -138,7 +138,7 @@ func resolveImage(url, alt string, width int, mode images.ImageMode, darkTheme b
 	}
 
 	log.Printf("image cache miss %s, rendering on-the-fly", url)
-	data, err := images.FetchImage(url, maxSize, fetchTimeout)
+	data, err := images.FetchImage(url, maxSize, fetchTimeout, contentDir)
 	if err != nil {
 		log.Printf("image fetch %s: %v", url, err)
 		return fmt.Sprintf("[Image: %s]", alt)
@@ -161,7 +161,7 @@ func resolveImage(url, alt string, width int, mode images.ImageMode, darkTheme b
 }
 
 // PrewarmImageCache pre-renders all images from posts for both themes and modes.
-func PrewarmImageCache(posts []Post, cache *images.Cache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int) {
+func PrewarmImageCache(posts []Post, cache *images.Cache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int, contentDir string) {
 	var urls []string
 	seen := make(map[string]bool)
 	for _, p := range posts {
@@ -180,7 +180,7 @@ func PrewarmImageCache(posts []Post, cache *images.Cache, maxSize int, fetchTime
 
 	log.Printf("prewarming image cache for %d images...", len(urls))
 	for _, url := range urls {
-		data, err := images.FetchImage(url, maxSize, fetchTimeout)
+		data, err := images.FetchImage(url, maxSize, fetchTimeout, contentDir)
 		if err != nil {
 			log.Printf("prewarm fetch %s: %v", url, err)
 			continue

@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"image/color"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -418,6 +419,7 @@ func (m Model) openPost(p content.Post) (Model, tea.Cmd) {
 		p.Body, cw-4, m.theme.String(), m.imageMode,
 		m.theme == themeDark, m.cache, m.diskCache, m.cfg.SSH.Images.MaxSize,
 		m.cfg.SSH.Images.FetchTimeout.Duration, m.cfg.SSH.Images.MaxAsciiWidth,
+		filepath.Dir(m.cfg.Content.PostsDir),
 	)
 	if err != nil {
 		rendered = p.Body

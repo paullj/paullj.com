@@ -2,6 +2,7 @@ package content
 
 import (
 	"log"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -48,7 +49,7 @@ func (s *PostStore) Reload() error {
 	s.mu.Unlock()
 	log.Printf("loaded %d posts", len(posts))
 	if s.diskCache == nil {
-		go PrewarmImageCache(posts, s.cache, s.maxSize, s.fetchTimeout, s.maxAsciiWidth)
+		go PrewarmImageCache(posts, s.cache, s.maxSize, s.fetchTimeout, s.maxAsciiWidth, filepath.Dir(s.dir))
 	} else {
 		log.Println("disk cache present, skipping prewarm")
 	}

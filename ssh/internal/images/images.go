@@ -2,6 +2,7 @@ package images
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"image"
 	"image/color"
@@ -9,9 +10,11 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -40,13 +43,85 @@ func (m ImageMode) String() string {
 	return "halfblock"
 }
 
+// isPrivateIP returns true if the IP is in a private/loopback/link-local range.
+func isPrivateIP(ip net.IP) bool {
+	privateRanges := []struct {
+		network *net.IPNet
+	}{
+		{mustParseCIDR("127.0.0.0/8")},
+		{mustParseCIDR("10.0.0.0/8")},
+		{mustParseCIDR("172.16.0.0/12")},
+		{mustParseCIDR("192.168.0.0/16")},
+		{mustParseCIDR("169.254.0.0/16")},
+		{mustParseCIDR("::1/128")},
+		{mustParseCIDR("fc00::/7")},
+		{mustParseCIDR("fe80::/10")},
+	}
+	for _, r := range privateRanges {
+		if r.network.Contains(ip) {
+			return true
+		}
+	}
+	return ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast()
+}
+
+func mustParseCIDR(s string) *net.IPNet {
+	_, network, err := net.ParseCIDR(s)
+	if err != nil {
+		panic(err)
+	}
+	return network
+}
+
+// ssrfSafeDialer returns a dialer that blocks connections to private/loopback IPs.
+func ssrfSafeDialer(timeout time.Duration) func(ctx context.Context, network, addr string) (net.Conn, error) {
+	dialer := &net.Dialer{Timeout: timeout}
+	return func(ctx context.Context, network, addr string) (net.Conn, error) {
+		host, port, err := net.SplitHostPort(addr)
+		if err != nil {
+			return nil, fmt.Errorf("invalid address: %w", err)
+		}
+
+		ips, err := net.DefaultResolver.LookupIPAddr(ctx, host)
+		if err != nil {
+			return nil, fmt.Errorf("DNS lookup failed: %w", err)
+		}
+
+		for _, ip := range ips {
+			if isPrivateIP(ip.IP) {
+				return nil, fmt.Errorf("blocked: %s resolves to private IP %s", host, ip.IP)
+			}
+		}
+
+		// Connect only to the first validated IP to prevent TOCTOU with round-robin DNS.
+		return dialer.DialContext(ctx, network, net.JoinHostPort(ips[0].IP.String(), port))
+	}
+}
+
 // FetchImage loads an image from a URL (http/https) or local file path.
-func FetchImage(url string, maxSize int, fetchTimeout time.Duration) ([]byte, error) {
+// For local paths, contentDir restricts reads to that directory (pass "" to skip).
+func FetchImage(url string, maxSize int, fetchTimeout time.Duration, contentDir ...string) ([]byte, error) {
 	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
-		return readLocalImage(url, maxSize)
+		var base string
+		if len(contentDir) > 0 {
+			base = contentDir[0]
+		}
+		return readLocalImage(url, maxSize, base)
 	}
 
-	client := &http.Client{Timeout: fetchTimeout}
+	transport := &http.Transport{
+		DialContext: ssrfSafeDialer(fetchTimeout),
+	}
+	client := &http.Client{
+		Timeout:   fetchTimeout,
+		Transport: transport,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 3 {
+				return fmt.Errorf("too many redirects")
+			}
+			return nil
+		},
+	}
 	resp, err := client.Get(url)
 	if err != nil {
 		return nil, err
@@ -67,8 +142,23 @@ func FetchImage(url string, maxSize int, fetchTimeout time.Duration) ([]byte, er
 	return data, nil
 }
 
-func readLocalImage(path string, maxSize int) ([]byte, error) {
-	data, err := os.ReadFile(path)
+func readLocalImage(path string, maxSize int, allowedBase string) ([]byte, error) {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return nil, fmt.Errorf("resolve path: %w", err)
+	}
+
+	if allowedBase != "" {
+		base, err := filepath.Abs(allowedBase)
+		if err != nil {
+			return nil, fmt.Errorf("resolve base: %w", err)
+		}
+		if !strings.HasPrefix(abs, base+string(filepath.Separator)) && abs != base {
+			return nil, fmt.Errorf("path %s is outside allowed directory", path)
+		}
+	}
+
+	data, err := os.ReadFile(abs)
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"path/filepath"
 	"strings"
 
 	"github.com/paullj/paullj.com/internal/config"
@@ -49,7 +50,7 @@ func main() {
 	log.Printf("prerendering %d local images at width %d...", len(urls), maxW)
 
 	for _, url := range urls {
-		data, err := images.FetchImage(url, cfg.SSH.Images.MaxSize, cfg.SSH.Images.FetchTimeout.Duration)
+		data, err := images.FetchImage(url, cfg.SSH.Images.MaxSize, cfg.SSH.Images.FetchTimeout.Duration, filepath.Dir(cfg.Content.PostsDir))
 		if err != nil {
 			log.Printf("fetch %s: %v", url, err)
 			continue

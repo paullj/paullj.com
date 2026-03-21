@@ -26,10 +26,13 @@ RUN /prerender-images --out /app/image-cache --config config.yaml
 FROM alpine:3.21
 RUN apk add --no-cache chafa
 WORKDIR /app
+RUN adduser -D -h /app appuser
 COPY --from=build /ssh.paullj.com /app/ssh.paullj.com
 COPY --from=build /app/image-cache /app/image-cache
 COPY config.yaml ./
 COPY --from=build /src/content/ content/
+RUN mkdir -p /data/keys && chown -R appuser:appuser /app /data/keys
 ENV PAULLJ_SSH_HOST_KEY_PATH=/data/keys/id_ed25519
 ENV PAULLJ_SSH_IMAGES_CACHE_DIR=/app/image-cache
+USER appuser
 ENTRYPOINT ["/app/ssh.paullj.com"]
