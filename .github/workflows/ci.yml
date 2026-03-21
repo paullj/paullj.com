@@ -5,21 +5,62 @@ on:
     branches: [main]
 
 jobs:
-  check:
+  format:
+    name: Format
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: jdx/mise-action@v2
+        with:
+          install: false
+
+      - run: mise install go gofumpt
 
       - name: Format check
-        run: mise run check
+        run: cd ssh && mise exec -- gofumpt -d . | grep -q . && echo 'needs formatting' && exit 1 || true
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: false
+
+      - run: mise install go golangci-lint
 
       - name: Lint
-        run: mise run lint
+        run: cd ssh && mise exec -- golangci-lint run ./...
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: false
+
+      - run: mise install go
 
       - name: Test
-        run: cd ssh && go test ./...
+        run: cd ssh && mise exec -- go test ./...
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: false
+
+      - run: mise install go
 
       - name: Build
-        run: mise run build
+        run: cd ssh && mise exec -- go build -o ../ssh.paullj.com ./cmd/ssh.paullj.com

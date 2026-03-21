@@ -13,8 +13,12 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: jdx/mise-action@v2
+        with:
+          install: false
+
+      - run: mise install flyctl
 
       - name: Deploy to Fly
-        run: flyctl deploy --remote-only
+        run: mise exec -- flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
