@@ -23,7 +23,7 @@ import (
 	"github.com/paullj/paullj.com/internal/tui"
 )
 
-func Run(cfg *config.Config, store *content.PostStore, cache *images.Cache, imgMode images.ImageMode, aboutRaw string) error {
+func Run(cfg *config.Config, store *content.PostStore, cache *images.Cache, diskCache *images.DiskCache, imgMode images.ImageMode, aboutRaw string) error {
 	handler := func(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		m := tui.NewModel(
 			store.GetPosts(),
@@ -31,6 +31,7 @@ func Run(cfg *config.Config, store *content.PostStore, cache *images.Cache, imgM
 			cfg,
 			aboutRaw,
 			cache,
+			diskCache,
 		)
 		return m, []tea.ProgramOption{}
 	}

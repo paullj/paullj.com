@@ -82,7 +82,7 @@ func RenderMarkdown(content string, width int, style string) (string, error) {
 
 // RenderMarkdownWithImages renders markdown and replaces image placeholders
 // with terminal-encoded images.
-func RenderMarkdownWithImages(content string, width int, style string, mode images.ImageMode, darkTheme bool, cache *images.Cache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int) (string, error) {
+func RenderMarkdownWithImages(content string, width int, style string, mode images.ImageMode, darkTheme bool, cache *images.Cache, diskCache *images.DiskCache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int) (string, error) {
 	type imageRef struct {
 		marker string
 		alt    string
@@ -102,7 +102,7 @@ func RenderMarkdownWithImages(content string, width int, style string, mode imag
 	}
 
 	for _, ref := range refs {
-		encoded := resolveImage(ref.url, ref.alt, width, mode, darkTheme, cache, maxSize, fetchTimeout, maxAsciiWidth)
+		encoded := resolveImage(ref.url, ref.alt, width, mode, darkTheme, cache, diskCache, maxSize, fetchTimeout, maxAsciiWidth)
 		padded := regexp.MustCompile(`[^\n]*` + regexp.QuoteMeta(ref.marker) + `[^\n]*`)
 		rendered = padded.ReplaceAllLiteralString(rendered, encoded)
 	}
@@ -110,7 +110,7 @@ func RenderMarkdownWithImages(content string, width int, style string, mode imag
 	return rendered, nil
 }
 
-func imageCacheKey(url string, width int, mode images.ImageMode, darkTheme bool, maxAsciiWidth int) string {
+func ImageCacheKey(url string, width int, mode images.ImageMode, darkTheme bool, maxAsciiWidth int) string {
 	w := width
 	if w > maxAsciiWidth {
 		w = maxAsciiWidth
@@ -122,12 +122,22 @@ func imageCacheKey(url string, width int, mode images.ImageMode, darkTheme bool,
 	return fmt.Sprintf("%s:%d:%d:%d", url, w, mode, themeKey)
 }
 
-func resolveImage(url, alt string, width int, mode images.ImageMode, darkTheme bool, cache *images.Cache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int) string {
-	cacheKey := imageCacheKey(url, width, mode, darkTheme, maxAsciiWidth)
+func resolveImage(url, alt string, width int, mode images.ImageMode, darkTheme bool, cache *images.Cache, diskCache *images.DiskCache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int) string {
+	cacheKey := ImageCacheKey(url, width, mode, darkTheme, maxAsciiWidth)
 	if cached, ok := cache.Get(cacheKey); ok {
+		log.Printf("image cache hit (memory) %s", url)
 		return cached
 	}
 
+	if diskCache != nil {
+		if cached, err := diskCache.Get(cacheKey); err == nil {
+			log.Printf("image cache hit (disk) %s", url)
+			cache.Put(cacheKey, cached)
+			return cached
+		}
+	}
+
+	log.Printf("image cache miss %s, rendering on-the-fly", url)
 	data, err := images.FetchImage(url, maxSize, fetchTimeout)
 	if err != nil {
 		log.Printf("image fetch %s: %v", url, err)
@@ -177,7 +187,7 @@ func PrewarmImageCache(posts []Post, cache *images.Cache, maxSize int, fetchTime
 		}
 		for _, dark := range []bool{true, false} {
 			for _, mode := range []images.ImageMode{images.ImageModeChafa, images.ImageModeAscii} {
-				key := imageCacheKey(url, maxAsciiWidth, mode, dark, maxAsciiWidth)
+				key := ImageCacheKey(url, maxAsciiWidth, mode, dark, maxAsciiWidth)
 				if _, ok := cache.Get(key); ok {
 					continue
 				}

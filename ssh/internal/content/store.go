@@ -13,15 +13,17 @@ type PostStore struct {
 	posts         []Post
 	dir           string
 	cache         *images.Cache
+	diskCache     *images.DiskCache
 	maxSize       int
 	fetchTimeout  time.Duration
 	maxAsciiWidth int
 }
 
-func NewPostStore(dir string, cache *images.Cache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int) (*PostStore, error) {
+func NewPostStore(dir string, cache *images.Cache, diskCache *images.DiskCache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int) (*PostStore, error) {
 	s := &PostStore{
 		dir:           dir,
 		cache:         cache,
+		diskCache:     diskCache,
 		maxSize:       maxSize,
 		fetchTimeout:  fetchTimeout,
 		maxAsciiWidth: maxAsciiWidth,
@@ -30,6 +32,10 @@ func NewPostStore(dir string, cache *images.Cache, maxSize int, fetchTimeout tim
 		return nil, err
 	}
 	return s, nil
+}
+
+func (s *PostStore) DiskCache() *images.DiskCache {
+	return s.diskCache
 }
 
 func (s *PostStore) Reload() error {
@@ -41,7 +47,11 @@ func (s *PostStore) Reload() error {
 	s.posts = posts
 	s.mu.Unlock()
 	log.Printf("loaded %d posts", len(posts))
-	go PrewarmImageCache(posts, s.cache, s.maxSize, s.fetchTimeout, s.maxAsciiWidth)
+	if s.diskCache == nil {
+		go PrewarmImageCache(posts, s.cache, s.maxSize, s.fetchTimeout, s.maxAsciiWidth)
+	} else {
+		log.Println("disk cache present, skipping prewarm")
+	}
 	return nil
 }
 

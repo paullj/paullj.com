@@ -89,6 +89,7 @@ type Model struct {
 
 	imageMode images.ImageMode
 	cache     *images.Cache
+	diskCache *images.DiskCache
 
 	splash   splashState
 	status   string
@@ -101,6 +102,7 @@ func NewModel(
 	cfg *config.Config,
 	aboutRaw string,
 	cache *images.Cache,
+	diskCache *images.DiskCache,
 ) Model {
 	ti := textinput.New()
 	ti.Prompt = "/ "
@@ -117,6 +119,7 @@ func NewModel(
 		aboutRaw:    aboutRaw,
 		imageMode:   imageMode,
 		cache:       cache,
+		diskCache:   diskCache,
 		postsFilter: ti,
 		homeSection: initSection,
 	}
@@ -413,7 +416,7 @@ func (m Model) openPost(p content.Post) (Model, tea.Cmd) {
 	cw := m.contentWidth()
 	rendered, err := content.RenderMarkdownWithImages(
 		p.Body, cw-4, m.theme.String(), m.imageMode,
-		m.theme == themeDark, m.cache, m.cfg.SSH.Images.MaxSize,
+		m.theme == themeDark, m.cache, m.diskCache, m.cfg.SSH.Images.MaxSize,
 		m.cfg.SSH.Images.FetchTimeout.Duration, m.cfg.SSH.Images.MaxAsciiWidth,
 	)
 	if err != nil {

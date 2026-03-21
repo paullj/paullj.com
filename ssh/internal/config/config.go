@@ -52,6 +52,7 @@ type ImagesConfig struct {
 	FetchTimeout  Duration `yaml:"fetch_timeout"`
 	CacheMaxBytes int      `yaml:"cache_max_bytes"`
 	MaxAsciiWidth int      `yaml:"max_ascii_width"`
+	CacheDir      string   `yaml:"cache_dir"`
 }
 
 type FilterConfig struct {
@@ -189,6 +190,7 @@ func applyEnvOverrides(cfg *Config) {
 	envDuration("PAULLJ_SSH_IMAGES_FETCH_TIMEOUT", &cfg.SSH.Images.FetchTimeout)
 	envInt("PAULLJ_SSH_IMAGES_CACHE_MAX_BYTES", &cfg.SSH.Images.CacheMaxBytes)
 	envInt("PAULLJ_SSH_IMAGES_MAX_ASCII_WIDTH", &cfg.SSH.Images.MaxAsciiWidth)
+	envStr("PAULLJ_SSH_IMAGES_CACHE_DIR", &cfg.SSH.Images.CacheDir)
 
 	envInt("PAULLJ_SSH_FILTER_MAX_CONCURRENT_PER_IP", &cfg.SSH.Filter.MaxConcurrentPerIP)
 	envStringSlice("PAULLJ_SSH_FILTER_BLOCKED_PREFIXES", &cfg.SSH.Filter.BlockedPrefixes)

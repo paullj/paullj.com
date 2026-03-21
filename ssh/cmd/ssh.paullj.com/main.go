@@ -21,10 +21,12 @@ func main() {
 	}
 
 	cache := images.NewCache(cfg.SSH.Images.CacheMaxBytes)
+	diskCache := images.NewDiskCache(cfg.SSH.Images.CacheDir)
 
 	store, err := content.NewPostStore(
 		cfg.Content.PostsDir,
 		cache,
+		diskCache,
 		cfg.SSH.Images.MaxSize,
 		cfg.SSH.Images.FetchTimeout.Duration,
 		cfg.SSH.Images.MaxAsciiWidth,
@@ -46,7 +48,7 @@ func main() {
 	imgMode := images.DetectImageMode()
 	log.Printf("image mode: %s", imgMode)
 
-	if err := server.Run(cfg, store, cache, imgMode, aboutRaw); err != nil {
+	if err := server.Run(cfg, store, cache, diskCache, imgMode, aboutRaw); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
 }
