@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  GOMODCACHE: /home/runner/.cache/go-mod
+  MISE_AUTO_INSTALL: false
+
 jobs:
   format:
     name: Format
@@ -20,7 +24,7 @@ jobs:
       - name: Format check
         run: |
           cd ssh
-          output=$(mise exec -- gofumpt -d . 2>/dev/null)
+          output=$(mise exec -- gofumpt -d .)
           if [ -n "$output" ]; then
             echo "$output"
             echo 'needs formatting'
@@ -39,6 +43,14 @@ jobs:
 
       - run: mise install go golangci-lint
 
+      - uses: actions/cache@v4
+        with:
+          path: |
+            /home/runner/.cache/go-mod
+            /home/runner/.cache/go-build
+          key: go-${{ hashFiles('ssh/go.sum') }}
+          restore-keys: go-
+
       - name: Lint
         run: cd ssh && mise exec -- golangci-lint run ./...
 
@@ -54,6 +66,14 @@ jobs:
 
       - run: mise install go
 
+      - uses: actions/cache@v4
+        with:
+          path: |
+            /home/runner/.cache/go-mod
+            /home/runner/.cache/go-build
+          key: go-${{ hashFiles('ssh/go.sum') }}
+          restore-keys: go-
+
       - name: Test
         run: cd ssh && mise exec -- go test ./...
 
@@ -68,6 +88,14 @@ jobs:
           install: false
 
       - run: mise install go
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            /home/runner/.cache/go-mod
+            /home/runner/.cache/go-build
+          key: go-${{ hashFiles('ssh/go.sum') }}
+          restore-keys: go-
 
       - name: Build
         run: cd ssh && mise exec -- go build -o ../ssh.paullj.com ./cmd/ssh.paullj.com

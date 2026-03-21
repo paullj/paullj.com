@@ -8,6 +8,9 @@ on:
 permissions:
   contents: write
 
+env:
+  MISE_AUTO_INSTALL: false
+
 jobs:
   generate:
     runs-on: ubuntu-latest

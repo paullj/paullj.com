@@ -176,7 +176,6 @@ func applyEnvOverrides(cfg *Config) {
 	envStr("PAULLJ_CONTENT_DESCRIPTION", &cfg.Content.Description)
 	envStr("PAULLJ_CONTENT_POSTS_DIR", &cfg.Content.PostsDir)
 
-
 	envStr("PAULLJ_SSH_HOST", &cfg.SSH.Host)
 	envStr("PAULLJ_SSH_PORT", &cfg.SSH.Port)
 	envStr("PAULLJ_SSH_HOST_KEY_PATH", &cfg.SSH.HostKeyPath)
