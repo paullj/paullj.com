@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy SSH
 
 on:
   push:
@@ -11,7 +11,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    concurrency: deploy
+    concurrency: deploy-ssh
     steps:
       - uses: actions/checkout@v4
 

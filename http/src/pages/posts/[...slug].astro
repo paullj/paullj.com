@@ -1,0 +1,41 @@
+---
+import { getCollection, render } from "astro:content";
+import BlogPost from "../../layouts/BlogPost.astro";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts");
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+
+const ogImage = post.data.ogImage ?? `/og-image/${post.id}.png`;
+const articleDate = (post.data.updatedAt ?? post.data.date).toISOString();
+
+function formatDate(date: Date) {
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+---
+
+<BlogPost
+  title={post.data.title}
+  description={post.data.description}
+  ogImage={ogImage}
+  articleDate={articleDate}
+  headings={headings}
+>
+  <Fragment slot="hero">
+    <time datetime={post.data.date.toISOString().slice(0, 10)} class="text-xs text-gray-500">
+      {formatDate(post.data.date)}
+    </time>
+    <h1 class="title mt-1">{post.data.title}</h1>
+    {post.data.description && (
+      <p class="mt-2 text-sm opacity-70">{post.data.description}</p>
+    )}
+  </Fragment>
+  <Content />
+</BlogPost>

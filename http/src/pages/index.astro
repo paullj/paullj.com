@@ -1,0 +1,61 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
+
+const posts = (await getCollection("posts")).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+const recentPosts = posts.slice(0, 5);
+
+const links = [
+  { name: "GitHub", url: "https://github.com/paullj" },
+  { name: "LinkedIn", url: "https://linkedin.com/in/paullj" },
+  { name: "Email", url: "mailto:paul@lavender-jones.com" },
+];
+
+function formatDate(date: Date) {
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+---
+
+<Base description="A personal website where I write about things I find interesting">
+  <section>
+    <h1 class="title mb-6">Paul Lavender-Jones</h1>
+    <p class="mb-4">Hi, I like to make things and sometimes I write about it here.</p>
+    <div class="flex flex-wrap items-center gap-x-4">
+      <p>Find me on</p>
+      <ul class="flex flex-1 items-center gap-x-4 sm:flex-initial">
+        {links.map((link) => (
+          <li class="flex">
+            <a class="cactus-link" href={link.url} target="_blank" rel="noopener noreferrer">
+              {link.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+  <section aria-label="Blog post list" class="mt-16">
+    <h2 class="title mb-4 text-xl">
+      Recent Posts /
+      <a href="/posts" class="opacity-70 hover:cactus-link hover:opacity-100">All Posts</a>
+    </h2>
+    <ul class="space-y-4 sm:space-y-2">
+      {recentPosts.map((post) => (
+        <li>
+          <div class="inline-grid grid-cols-[auto_1fr] gap-x-4">
+            <time
+              datetime={post.data.date.toISOString().slice(0, 10)}
+              class="min-w-[120px] text-gray-600 dark:text-gray-400"
+            >
+              {formatDate(post.data.date)}
+            </time>
+            <a href={`/posts/${post.id}`} class="cactus-link">
+              {post.data.title}
+            </a>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Base>

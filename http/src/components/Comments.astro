@@ -1,0 +1,57 @@
+---
+const repo = import.meta.env.PUBLIC_GISCUS_REPO || "paullj/paullj.com";
+const repoId = import.meta.env.PUBLIC_GISCUS_REPO_ID || "";
+const category = import.meta.env.PUBLIC_GISCUS_CATEGORY || "Comments";
+const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID || "";
+---
+
+<noscript>
+  <div class="flex items-center justify-center">
+    <span class="mx-auto rounded-lg p-1 text-xs opacity-70">
+      JavaScript is required to view comments.
+    </span>
+  </div>
+</noscript>
+
+<script
+  id="giscus-script"
+  src="https://giscus.app/client.js"
+  data-repo={repo}
+  data-repo-id={repoId}
+  data-category={category}
+  data-category-id={categoryId}
+  data-mapping="pathname"
+  data-strict="0"
+  data-reactions-enabled="1"
+  data-emit-metadata="0"
+  data-input-position="bottom"
+  data-theme="noborder_light"
+  data-lang="en"
+  crossorigin="anonymous"
+  async
+></script>
+
+<script>
+  function getTheme() {
+    return document.documentElement.getAttribute("data-theme") || "light";
+  }
+
+  function setGiscusTheme() {
+    const iframe = document.querySelector("iframe.giscus-frame") as HTMLIFrameElement;
+    if (!iframe) return;
+    iframe.contentWindow?.postMessage(
+      { giscus: { setConfig: { theme: getTheme() === "light" ? "noborder_light" : "noborder_dark" } } },
+      "https://giscus.app",
+    );
+  }
+
+  function handleGiscusMessage(event: MessageEvent) {
+    if (event.origin !== "https://giscus.app") return;
+    if (!(typeof event.data === "object" && event.data.giscus)) return;
+    setGiscusTheme();
+    window.removeEventListener("message", handleGiscusMessage);
+  }
+
+  window.addEventListener("message", handleGiscusMessage);
+  document.addEventListener("theme-change", () => setGiscusTheme());
+</script>

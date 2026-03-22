@@ -1,0 +1,127 @@
+---
+import ThemeProvider from "../components/ThemeProvider.astro";
+import ThemeToggle from "../components/ThemeToggle.astro";
+import Search from "../components/Search.astro";
+import BaseHead from "../components/BaseHead.astro";
+import SkipLink from "../components/SkipLink.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  articleDate?: string;
+}
+
+const { title = "paullj", description, ogImage, articleDate } = Astro.props;
+
+const menuLinks = [
+  { title: "Home", path: "/" },
+  { title: "About", path: "/about" },
+  { title: "Blog", path: "/posts" },
+];
+
+const url = new URL(Astro.request.url);
+const year = new Date().getFullYear();
+---
+
+<html lang="en-GB">
+  <head>
+    <BaseHead title={title} description={description} ogImage={ogImage} articleDate={articleDate} />
+  </head>
+  <body>
+    <SkipLink />
+    <ThemeProvider />
+    <header class="group relative mb-28 flex items-center">
+      <div class="flex sm:flex-col">
+        <nav
+          id="navigation-menu"
+          class="absolute -inset-x-4 top-14 hidden flex-col items-end gap-y-1 rounded-md bg-[hsl(var(--theme-bg))] py-4 shadow group-[.menu-open]:z-50 group-[.menu-open]:flex sm:static sm:z-auto sm:-ms-4 sm:mt-1 sm:flex sm:flex-row sm:items-center sm:gap-y-0 sm:rounded-none sm:bg-transparent sm:py-0 sm:shadow-none"
+          style="color: hsl(var(--theme-accent));"
+          aria-label="Main menu"
+        >
+          {menuLinks.map((link) => (
+            <a
+              href={link.path}
+              class:list={["mx-4 px-1 py-1 sm:py-0 sm:hover:cactus-link", { "cactus-link": url.pathname === link.path || (link.path !== "/" && url.pathname.startsWith(link.path)) }]}
+              aria-current={url.pathname === link.path ? "page" : false}
+            >
+              {link.title}
+            </a>
+          ))}
+        </nav>
+      </div>
+      <Search />
+      <ThemeToggle />
+      <mobile-button>
+        <button
+          id="toggle-navigation-menu"
+          class="group relative ms-4 h-7 w-7 sm:invisible sm:hidden"
+          type="button"
+          aria-label="Open main menu"
+          aria-expanded="false"
+          aria-haspopup="menu"
+        >
+          <svg
+            class="absolute start-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 transition-all group-aria-expanded:scale-0 group-aria-expanded:opacity-0"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" />
+          </svg>
+          <svg
+            class="absolute start-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 scale-0 opacity-0 transition-all group-aria-expanded:scale-100 group-aria-expanded:opacity-100"
+            style="color: hsl(var(--theme-accent));"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </mobile-button>
+    </header>
+    <main id="main" class="flex-1">
+      <slot />
+    </main>
+    <footer class="mt-auto flex w-full flex-col items-center justify-center gap-y-2 pb-4 pt-20 text-center align-top font-semibold text-gray-600 sm:flex-row sm:justify-between sm:text-xs">
+      <div class="me-0 sm:me-4">
+        Copyright &copy; {year} Paul Lavender-Jones
+      </div>
+      <nav aria-label="More on this site" class="flex gap-x-2 sm:gap-x-0">
+        {menuLinks.map((link) => (
+          <a
+            href={link.path}
+            class="px-4 py-2 sm:px-2 sm:py-0 sm:hover:underline"
+            style="transition: color 0.15s;"
+          >
+            {link.title}
+          </a>
+        ))}
+      </nav>
+    </footer>
+    <script>
+      class MobileNavBtn extends HTMLElement {
+        constructor() {
+          super();
+          const headerEl = document.getElementById("main-header") || this.closest("header");
+          const btn = this.querySelector("button")!;
+          let menuOpen = false;
+
+          btn.addEventListener("click", () => {
+            headerEl?.classList.toggle("menu-open");
+            menuOpen = !menuOpen;
+            btn.setAttribute("aria-expanded", menuOpen.toString());
+          });
+        }
+      }
+      customElements.define("mobile-button", MobileNavBtn);
+    </script>
+  </body>
+</html>

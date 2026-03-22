@@ -5,6 +5,8 @@ gofumpt = "latest"
 air = "latest"
 flyctl = "latest"
 vhs = "latest"
+node = "22"
+pnpm = "latest"
 
 [tasks.dev]
 description = "Run with hot reload"
@@ -43,3 +45,19 @@ run = "cd ssh && gofumpt -d . | grep -q . && echo 'needs formatting' && exit 1 |
 [tasks.deploy]
 description = "Deploy to Fly"
 run = "flyctl deploy --remote-only"
+
+[tasks."http:dev"]
+description = "Run Astro dev server"
+run = "cd http && pnpm dev"
+
+[tasks."http:build"]
+description = "Build Astro site"
+run = "cd http && pnpm build"
+
+[tasks."http:preview"]
+description = "Preview Astro build"
+run = "cd http && pnpm preview"
+
+[tasks."http:install"]
+description = "Install http dependencies"
+run = "cd http && pnpm install"

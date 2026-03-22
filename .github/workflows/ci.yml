@@ -9,8 +9,8 @@ env:
   MISE_AUTO_INSTALL: false
 
 jobs:
-  format:
-    name: Format
+  format-ssh:
+    name: Format SSH
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,8 +31,8 @@ jobs:
             exit 1
           fi
 
-  lint:
-    name: Lint
+  lint-ssh:
+    name: Lint SSH
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -54,8 +54,8 @@ jobs:
       - name: Lint
         run: cd ssh && mise exec -- golangci-lint run ./...
 
-  test:
-    name: Test
+  test-ssh:
+    name: Test SSH
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,8 +77,8 @@ jobs:
       - name: Test
         run: cd ssh && mise exec -- go test ./...
 
-  build:
-    name: Build
+  build-ssh:
+    name: Build SSH
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -99,3 +99,21 @@ jobs:
 
       - name: Build
         run: cd ssh && mise exec -- go build -o ../ssh.paullj.com ./cmd/ssh.paullj.com
+
+  build-http:
+    name: Build HTTP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: false
+
+      - run: mise install node pnpm
+
+      - name: Install dependencies
+        run: cd http && mise exec -- pnpm install --frozen-lockfile
+
+      - name: Build
+        run: cd http && mise exec -- pnpm build

@@ -1,0 +1,63 @@
+---
+import type { MarkdownHeading } from "astro";
+import Base from "./Base.astro";
+import TOC from "../components/blog/TOC.astro";
+import Comments from "../components/Comments.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+  articleDate?: string;
+  headings: Array<MarkdownHeading>;
+}
+
+const { title, description, ogImage, articleDate, headings } = Astro.props;
+---
+
+<Base title={title} description={description} ogImage={ogImage} articleDate={articleDate}>
+  <div class="gap-x-10 lg:flex lg:items-start">
+    {!!headings.length && <TOC headings={headings} />}
+    <article class="flex-grow break-words">
+      <div id="blog-hero">
+        <slot name="hero" />
+      </div>
+      <div class="prose mt-8">
+        <slot />
+      </div>
+    </article>
+  </div>
+  <div class="mt-16">
+    <Comments />
+  </div>
+  <button
+    id="to-top-btn"
+    class="fixed bottom-8 end-4 z-50 translate-y-28 opacity-0 transition-all duration-300 data-[show=true]:translate-y-0 data-[show=true]:opacity-100 sm:end-8"
+    data-show="false"
+  >
+    <span class="cactus-link hidden text-xs sm:inline">Back to top</span>
+    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-200 hover:border-2 hover:border-zinc-400 sm:hidden dark:bg-zinc-700">
+      <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+      </svg>
+    </span>
+  </button>
+</Base>
+
+<script>
+  const scrollBtn = document.getElementById("to-top-btn") as HTMLButtonElement;
+  const targetHeader = document.getElementById("blog-hero") as HTMLDivElement;
+
+  function callback(entries: IntersectionObserverEntry[]) {
+    entries.forEach((entry) => {
+      scrollBtn.dataset.show = (!entry.isIntersecting).toString();
+    });
+  }
+
+  scrollBtn.addEventListener("click", () => {
+    document.documentElement.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  const observer = new IntersectionObserver(callback);
+  observer.observe(targetHeader);
+</script>

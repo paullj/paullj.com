@@ -1,0 +1,55 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import Paginator from "../../components/Paginator.astro";
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = (await getCollection("posts")).sort(
+    (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+  );
+  return paginate(posts, { pageSize: 10 });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+
+function formatDate(date: Date) {
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+---
+
+<Base title="Posts" description="All blog posts">
+  <h1 class="title mb-6">Posts</h1>
+  <div class="grid gap-y-16">
+    <section aria-label="Blog post list">
+      <ul class="space-y-8 text-start">
+        {page.data.map((post) => (
+          <li data-post data-title={post.data.title} data-description={post.data.description || ""} data-date={formatDate(post.data.date)}>
+            <div class="inline-grid grid-cols-[auto_1fr] gap-x-4">
+              <time
+                datetime={post.data.date.toISOString().slice(0, 10)}
+                class="row-span-2 min-w-[120px] text-gray-600 dark:text-gray-400"
+              >
+                {formatDate(post.data.date)}
+              </time>
+              <h2>
+                <a href={`/posts/${post.id}`} class="cactus-link">
+                  {post.data.title}
+                </a>
+              </h2>
+              {post.data.description && (
+                <p class="mt-1 line-clamp-3 opacity-70">{post.data.description}</p>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+  <Paginator
+    prevUrl={page.url.prev}
+    nextUrl={page.url.next}
+    currentPage={page.currentPage}
+    lastPage={page.lastPage}
+  />
+</Base>
