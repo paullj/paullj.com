@@ -1,6 +1,6 @@
 import rss from "@astrojs/rss";
 import { getCollection } from "astro:content";
-import { siteConfig } from "../site.config";
+import { content, http } from "../site.config";
 
 export async function GET(context: { site: URL }) {
   const posts = (await getCollection("posts")).sort(
@@ -8,8 +8,8 @@ export async function GET(context: { site: URL }) {
   );
 
   return rss({
-    title: siteConfig.title,
-    description: siteConfig.description,
+    title: http.title,
+    description: content.description,
     site: context.site,
     items: posts.map((post) => ({
       title: post.data.title,

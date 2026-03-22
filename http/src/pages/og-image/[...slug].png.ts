@@ -3,7 +3,7 @@ import { getCollection } from "astro:content";
 import satori, { type SatoriOptions } from "satori";
 import { html } from "satori-html";
 import { Resvg } from "@resvg/resvg-js";
-import { siteConfig } from "../../site.config";
+import { content, http } from "../../site.config";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -40,16 +40,16 @@ const markup = (title: string, pubDate: string) =>
     </div>
     <div tw="flex items-center justify-between w-full p-10 border-t border-[#2bbc89] text-xl">
       <div tw="flex items-center">
-        <p tw="ml-3 font-semibold">${siteConfig.title}</p>
+        <p tw="ml-3 font-semibold">${http.title}</p>
       </div>
-      <p>by ${siteConfig.author}</p>
+      <p>by ${content.name}</p>
     </div>
   </div>`;
 
 export async function GET({ params: { slug } }: APIContext) {
   const posts = await getCollection("posts");
   const post = posts.find((p) => p.id === slug);
-  const title = post?.data.title ?? siteConfig.title;
+  const title = post?.data.title ?? http.title;
   const postDate = formatDate(post?.data.updatedAt ?? post?.data.date ?? new Date());
   const svg = await satori(markup(title, postDate), ogOptions);
   const png = new Resvg(svg).render().asPng();

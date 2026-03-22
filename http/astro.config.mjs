@@ -6,10 +6,16 @@ import sitemap from '@astrojs/sitemap';
 import rehypeMermaid from 'rehype-mermaid';
 import rehypeExternalLinks from 'rehype-external-links';
 import { remarkRewriteImages } from './remark-rewrite-images.mjs';
+import remarkGithubAdmonitions from 'remark-github-beta-blockquote-admonitions';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { parse } from 'yaml';
+
+const config = parse(readFileSync(resolve(process.cwd(), '../config.yaml'), 'utf-8'));
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://paullj.com',
+  site: config.http_url,
   integrations: [
     expressiveCode({
       themes: ['dracula', 'github-light'],
@@ -29,7 +35,15 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   markdown: {
-    remarkPlugins: [remarkRewriteImages],
+    remarkPlugins: [
+      remarkRewriteImages,
+      [remarkGithubAdmonitions, {
+        classNameMaps: {
+          block: (title) => ['admonition', `admonition-${title.toLowerCase()}`],
+          title: 'admonition-title',
+        },
+      }],
+    ],
     rehypePlugins: [
       [rehypeMermaid, { strategy: 'inline-svg' }],
       [rehypeExternalLinks, { target: '_blank', rel: ['nofollow', 'noopener', 'noreferrer'] }],

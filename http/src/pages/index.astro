@@ -1,33 +1,28 @@
 ---
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
+import { content } from "../site.config";
 
 const posts = (await getCollection("posts")).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime()
 );
-const recentPosts = posts.slice(0, 5);
-
-const links = [
-  { name: "GitHub", url: "https://github.com/paullj" },
-  { name: "LinkedIn", url: "https://linkedin.com/in/paullj" },
-  { name: "Email", url: "mailto:paul@lavender-jones.com" },
-];
+const recentPosts = posts.slice(0, content.recent_posts_limit);
 
 function formatDate(date: Date) {
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 ---
 
-<Base description="A personal website where I write about things I find interesting">
+<Base title="Home" description={content.description}>
   <section>
-    <h1 class="title mb-6">Paul Lavender-Jones</h1>
-    <p class="mb-4">Hi, I like to make things and sometimes I write about it here.</p>
+    <h1 class="title mb-6">{content.name}</h1>
+    <p class="mb-4">{content.subtitle}</p>
     <div class="flex flex-wrap items-center gap-x-4">
       <p>Find me on</p>
       <ul class="flex flex-1 items-center gap-x-4 sm:flex-initial">
-        {links.map((link) => (
+        {content.links.map((link) => (
           <li class="flex">
-            <a class="cactus-link" href={link.url} target="_blank" rel="noopener noreferrer">
+            <a class="cactus-link" href={link.url.includes("@") && !link.url.startsWith("mailto:") ? `mailto:${link.url}` : link.url} target="_blank" rel="noopener noreferrer">
               {link.name}
             </a>
           </li>

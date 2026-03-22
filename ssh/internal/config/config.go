@@ -83,8 +83,10 @@ type SSHConfig struct {
 }
 
 type Config struct {
-	Content ContentConfig `yaml:"content"`
-	SSH     SSHConfig     `yaml:"ssh"`
+	HttpURL    string        `yaml:"http_url"`
+	SSHAddress string        `yaml:"ssh_address"`
+	Content    ContentConfig `yaml:"content"`
+	SSH        SSHConfig     `yaml:"ssh"`
 }
 
 func Default() *Config {

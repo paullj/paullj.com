@@ -1,3 +1,6 @@
+http_url: "https://paullj.com"
+ssh_address: "ssh.paullj.com"
+
 content:
   name: "Paul Lavender-Jones"
   subtitle: "Hi, I like to make things and sometimes I write about it here."

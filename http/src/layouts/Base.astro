@@ -4,6 +4,7 @@ import ThemeToggle from "../components/ThemeToggle.astro";
 import Search from "../components/Search.astro";
 import BaseHead from "../components/BaseHead.astro";
 import SkipLink from "../components/SkipLink.astro";
+import { sshAddress, content } from "../site.config";
 
 interface Props {
   title?: string;
@@ -33,7 +34,7 @@ const year = new Date().getFullYear();
       <div class="mx-auto max-w-3xl px-8 font-mono">
         <button
           class="cursor-pointer align-middle"
-          data-copy="ssh ssh.paullj.com"
+          data-copy={`ssh ${sshAddress}`}
           title="Click to copy"
         >
           <span class="inline-flex h-[14px] w-[1ch] items-center justify-center align-middle" data-icon-slot>
@@ -41,7 +42,7 @@ const year = new Date().getFullYear();
             <span class="opacity-70" style="display:none" data-copy-icon><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span>
             <span class="text-green-400" style="display:none" data-check-icon><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
           </span>
-          <code class="font-bold" data-cmd>ssh ssh.paullj.com</code>
+          <code class="font-bold" data-cmd>ssh {sshAddress}</code>
         </button>
         <span class="opacity-50"># read this blog in your terminal</span>
         <span class="animate-blink inline-block h-[1em] w-[0.6em] translate-y-[0.15em] bg-current"></span>
@@ -53,14 +54,14 @@ const year = new Date().getFullYear();
       <div class="flex sm:flex-col">
         <nav
           id="navigation-menu"
-          class="absolute -inset-x-4 top-14 hidden flex-col items-end gap-y-1 rounded-md bg-[hsl(var(--theme-bg))] py-4 shadow group-[.menu-open]:z-50 group-[.menu-open]:flex sm:static sm:z-auto sm:-ms-4 sm:mt-1 sm:flex sm:flex-row sm:items-center sm:gap-y-0 sm:rounded-none sm:bg-transparent sm:py-0 sm:shadow-none"
+          class="absolute -inset-x-4 top-14 hidden flex-col items-end gap-y-1 rounded-md bg-[hsl(var(--theme-bg))] py-4 shadow group-[.menu-open]:z-50 group-[.menu-open]:flex sm:static sm:z-auto sm:mt-1 sm:flex sm:flex-row sm:items-center sm:gap-x-6 sm:gap-y-0 sm:rounded-none sm:bg-transparent sm:py-0 sm:shadow-none"
           style="color: hsl(var(--theme-accent));"
           aria-label="Main menu"
         >
           {menuLinks.map((link) => (
             <a
               href={link.path}
-              class:list={["mx-4 px-1 py-1 sm:py-0 sm:hover:cactus-link", { "cactus-link": url.pathname === link.path || (link.path !== "/" && url.pathname.startsWith(link.path)) }]}
+              class:list={["py-1 sm:py-0 sm:hover:cactus-link", { "cactus-link": url.pathname === link.path || (link.path !== "/" && url.pathname.startsWith(link.path)) }]}
               aria-current={url.pathname === link.path ? "page" : false}
             >
               {link.title}
@@ -110,7 +111,7 @@ const year = new Date().getFullYear();
     </main>
     <footer class="mt-auto flex w-full flex-col items-center justify-center gap-y-2 pb-4 pt-20 text-center align-top font-semibold text-gray-600 sm:flex-row sm:justify-between sm:text-xs">
       <div class="me-0 sm:me-4">
-        Copyright &copy; {year} Paul Lavender-Jones
+        Copyright &copy; {year} {content.name}
       </div>
       <nav aria-label="More on this site" class="flex gap-x-2 sm:gap-x-0">
         {menuLinks.map((link) => (
