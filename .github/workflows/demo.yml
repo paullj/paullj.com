@@ -23,6 +23,9 @@ jobs:
 
       - run: mise install vhs
 
+      - name: Add SSH host key
+        run: mkdir -p ~/.ssh && ssh-keyscan ssh.paullj.com >> ~/.ssh/known_hosts 2>/dev/null
+
       - name: Generate demo GIF
         run: mise exec -- vhs docs/demo.tape
 
