@@ -1,7 +1,7 @@
 content:
   name: "Paul Lavender-Jones"
   subtitle: "Hi, I like to make things and sometimes I write about it here."
-  description: "A blog served over SSH"
+  description: "A personal page where I write about things I find interesting"
   recent_posts_limit: 5
   about_path: "content/about.md"
   posts_dir: "content/posts"
@@ -9,9 +9,14 @@ content:
     - name: GitHub
       url: https://github.com/paullj
     - name: LinkedIn
-      url: https://linkedin.com/in/paullj
+      url: https://linkedin.com/in/paul-lavender-jones
     - name: Email
       url: paul@lavender-jones.com
+
+http:
+  title: "paullj"
+  lang: "en-GB"
+  og_locale: "en_GB"
 
 ssh:
   max_width: 110

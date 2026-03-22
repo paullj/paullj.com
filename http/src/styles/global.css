@@ -2,6 +2,15 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+@utility animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
 @layer base {
   :root,
   :root[data-theme="light"] {
@@ -26,6 +35,7 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   html body {

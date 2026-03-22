@@ -29,6 +29,24 @@ const year = new Date().getFullYear();
     <BaseHead title={title} description={description} ogImage={ogImage} articleDate={articleDate} />
   </head>
   <body>
+    <div class="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-16 mb-16 w-screen bg-[hsl(var(--theme-text))] py-2 text-[hsl(var(--theme-bg))] dark:bg-black dark:text-gray-300 text-sm">
+      <div class="mx-auto max-w-3xl px-8 font-mono">
+        <button
+          class="cursor-pointer align-middle"
+          data-copy="ssh ssh.paullj.com"
+          title="Click to copy"
+        >
+          <span class="inline-flex h-[14px] w-[1ch] items-center justify-center align-middle" data-icon-slot>
+            <span class="opacity-70" data-prompt>$</span>
+            <span class="opacity-70" style="display:none" data-copy-icon><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span>
+            <span class="text-green-400" style="display:none" data-check-icon><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          </span>
+          <code class="font-bold" data-cmd>ssh ssh.paullj.com</code>
+        </button>
+        <span class="opacity-50"># read this blog in your terminal</span>
+        <span class="animate-blink inline-block h-[1em] w-[0.6em] translate-y-[0.15em] bg-current"></span>
+      </div>
+    </div>
     <SkipLink />
     <ThemeProvider />
     <header class="group relative mb-28 flex items-center">
@@ -122,6 +140,46 @@ const year = new Date().getFullYear();
         }
       }
       customElements.define("mobile-button", MobileNavBtn);
+    </script>
+    <script>
+      document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((btn) => {
+        const prompt = btn.querySelector("[data-prompt]") as HTMLElement;
+        const copyIcon = btn.querySelector("[data-copy-icon]") as HTMLElement;
+        const checkIcon = btn.querySelector("[data-check-icon]") as HTMLElement;
+        const cmd = btn.querySelector("[data-cmd]") as HTMLElement;
+        let copied = false;
+
+        btn.addEventListener("mouseenter", () => {
+          if (copied) return;
+          prompt.style.display = "none";
+          copyIcon.style.display = "";
+        });
+
+        btn.addEventListener("mouseleave", () => {
+          if (copied) return;
+          copyIcon.style.display = "none";
+          prompt.style.display = "";
+        });
+
+        btn.addEventListener("click", async () => {
+          await navigator.clipboard.writeText(btn.dataset.copy!);
+          copied = true;
+          prompt.style.display = "none";
+          copyIcon.style.display = "none";
+          checkIcon.style.display = "";
+          cmd.classList.add("text-green-400");
+          setTimeout(() => {
+            copied = false;
+            checkIcon.style.display = "none";
+            cmd.classList.remove("text-green-400");
+            if (btn.matches(":hover")) {
+              copyIcon.style.display = "";
+            } else {
+              prompt.style.display = "";
+            }
+          }, 1500);
+        });
+      });
     </script>
   </body>
 </html>

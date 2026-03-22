@@ -56,6 +56,9 @@ importers:
       unist-util-visit:
         specifier: ^5.1.0
         version: 5.1.0
+      yaml:
+        specifier: ^2.8.3
+        version: 2.8.3
     devDependencies:
       pagefind:
         specifier: ^1.4.0
@@ -5060,8 +5063,7 @@ snapshots:
 
   xxhash-wasm@1.1.0: {}
 
-  yaml@2.8.3:
-    optional: true
+  yaml@2.8.3: {}
 
   yargs-parser@22.0.0: {}
 

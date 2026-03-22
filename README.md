@@ -1,6 +1,9 @@
 # paullj.com
 
-A blog served over ssh, built with go, [bubble tea](https://github.com/charmbracelet/bubbletea), and [wish](https://github.com/charmbracelet/wish).
+acesss via `ssh ssh.paullj.com` and/or [paullj.com](https://paullj.com).
+
+
+A blog served over ssh and http, built with go and astro, [bubble tea](https://github.com/charmbracelet/bubbletea), and [wish](https://github.com/charmbracelet/wish).
 
 ![Demo](docs/demo.gif)
 
