@@ -9,8 +9,8 @@ env:
   MISE_AUTO_INSTALL: false
 
 jobs:
-  format-ssh:
-    name: Format SSH
+  check-ssh:
+    name: Check SSH
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,29 +19,7 @@ jobs:
         with:
           install: false
 
-      - run: mise install go gofumpt
-
-      - name: Format check
-        run: |
-          cd ssh
-          output=$(mise exec -- gofumpt -d .)
-          if [ -n "$output" ]; then
-            echo "$output"
-            echo 'needs formatting'
-            exit 1
-          fi
-
-  lint-ssh:
-    name: Lint SSH
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: jdx/mise-action@v2
-        with:
-          install: false
-
-      - run: mise install go golangci-lint
+      - run: mise install go gofumpt golangci-lint
 
       - uses: actions/cache@v4
         with:
@@ -51,8 +29,8 @@ jobs:
           key: go-${{ hashFiles('ssh/go.sum') }}
           restore-keys: go-
 
-      - name: Lint
-        run: cd ssh && mise exec -- golangci-lint run ./...
+      - name: Lint + format check
+        run: mise run ssh:check
 
   test-ssh:
     name: Test SSH
@@ -75,7 +53,7 @@ jobs:
           restore-keys: go-
 
       - name: Test
-        run: cd ssh && mise exec -- go test ./...
+        run: mise run ssh:test
 
   build-ssh:
     name: Build SSH
@@ -98,7 +76,25 @@ jobs:
           restore-keys: go-
 
       - name: Build
-        run: cd ssh && mise exec -- go build -o ../ssh.paullj.com ./cmd/ssh.paullj.com
+        run: mise run ssh:build
+
+  check-http:
+    name: Check HTTP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: false
+
+      - run: mise install node pnpm
+
+      - name: Install dependencies
+        run: cd http && mise exec -- pnpm install --frozen-lockfile
+
+      - name: Lint + format check
+        run: mise run http:check
 
   build-http:
     name: Build HTTP
@@ -119,4 +115,4 @@ jobs:
         run: cd http && mise exec -- pnpm exec playwright install --with-deps chromium
 
       - name: Build
-        run: cd http && mise exec -- pnpm build
+        run: mise run http:build

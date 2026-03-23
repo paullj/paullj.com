@@ -18,6 +18,10 @@ depends = ["ssh:lint", "http:lint"]
 description = "Format all code"
 depends = ["ssh:format", "http:format"]
 
+[tasks.test]
+description = "Run all tests"
+depends = ["ssh:test"]
+
 [tasks.check]
 description = "Lint + format check all"
 depends = ["ssh:check", "http:check"]
@@ -48,6 +52,10 @@ run = "./ssh.paullj.com"
 [tasks."ssh:connect"]
 description = "Connect to local SSH server"
 run = "ssh -o StrictHostKeyChecking=no -p 2222 localhost"
+
+[tasks."ssh:test"]
+description = "Run Go tests"
+run = "cd ssh && go test ./..."
 
 [tasks."ssh:lint"]
 description = "Run Go linter"
