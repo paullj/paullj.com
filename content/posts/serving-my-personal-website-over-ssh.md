@@ -7,34 +7,39 @@ draft: true
 
 ## The terminal rabbit hole
 
-- Been living in the terminal lately — tmux, nvim, TUIs for everything
-- Discovered terminal.shop and eieio.games — SSH as a platform, not just remote access
+- moved away from vscode
+- Been enjoying using the terminal lately tmux, nvim, TUIs for everything 
+- SSH as a platform/app not just remote access
 - terminal.shop: love the simplicity of the SSH app
 - eieio.games: love the esoteric, playful use of the medium
-- Thought: what if my personal site lived here too?
+- im sure its been done before, but why not serve this site over ssh too
 
 ## Why SSH?
 
-- "Why not just make a normal website?" — fair question
-- It's not practical. That's kind of the point.
-- But genuinely:
+- "Why not just make a normal website?" - yeah fair 
+- It's not practical, its just for fun
+- But real reasons why u might want to read via ssh
   - No JS, no cookies, no tracking — privacy by architecture, nothing to block
-  - Universal client — every dev machine has `ssh`, zero install
-  - Keyboard-first nav — natural for terminal users, no mouse
-- Honest about tradeoffs: image rendering is... creative
+  - Universal client - every dev machine has `ssh`, zero install
+  - Keyboard-first nav - natural for terminal users, no mouse
+  - can stay in one tool
+- Honest about tradeoffs: image rendering is... fun/cool but not isnt actually useable for most images
 
 ## The stack
 
-- Go + Bubble Tea + Wish (Charm ecosystem)
-- Shared `content/` dir — same markdown posts serve both SSH and HTTP (Astro) site
-- Brief nod to the dual-site monorepo approach
+- monorepo both http and ssh sites driven by gfm markdown content and yaml files
+- Shared `content/` dir - same markdown posts serve both SSH and HTTP (Astro) site
+
+- Go + Bubble Tea + Wish. charm
+- astro for markdown
 
 ## Show & tell
 
 - Side-by-side SSH vs HTTP: same post rendered in terminal vs browser
 - Chafa image rendering: show how images look in the terminal
-  - Honest: it's not great, but it's charming
-- Goal was feature parity — read the same content either way
+  - it's not great, but it's charming
+- adding in the gfm features like footnotes, alerts and ascii mermaid diagrams. mermaid diagrams are fun but the produced outputs don't always work well in the terminal
+- Goal was as close to feature parity as makes sense - read the same content either way
 
 ## Try it
 
