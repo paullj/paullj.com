@@ -13,6 +13,7 @@ type PostStore struct {
 	mu            sync.RWMutex
 	posts         []Post
 	dir           string
+	includeDrafts bool
 	cache         *images.Cache
 	diskCache     *images.DiskCache
 	maxSize       int
@@ -20,9 +21,10 @@ type PostStore struct {
 	maxAsciiWidth int
 }
 
-func NewPostStore(dir string, cache *images.Cache, diskCache *images.DiskCache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int) (*PostStore, error) {
+func NewPostStore(dir string, includeDrafts bool, cache *images.Cache, diskCache *images.DiskCache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int) (*PostStore, error) {
 	s := &PostStore{
 		dir:           dir,
+		includeDrafts: includeDrafts,
 		cache:         cache,
 		diskCache:     diskCache,
 		maxSize:       maxSize,
@@ -40,7 +42,7 @@ func (s *PostStore) DiskCache() *images.DiskCache {
 }
 
 func (s *PostStore) Reload() error {
-	posts, err := LoadPosts(s.dir)
+	posts, err := LoadPosts(s.dir, s.includeDrafts)
 	if err != nil {
 		return err
 	}

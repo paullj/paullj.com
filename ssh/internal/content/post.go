@@ -20,11 +20,12 @@ type Post struct {
 	Title       string    `yaml:"title"`
 	Date        time.Time `yaml:"date"`
 	Description string    `yaml:"description"`
+	Draft       bool      `yaml:"draft"`
 	Slug        string
 	Body        string
 }
 
-func LoadPosts(dir string) ([]Post, error) {
+func LoadPosts(dir string, includeDrafts bool) ([]Post, error) {
 	files, err := filepath.Glob(filepath.Join(dir, "*.md"))
 	if err != nil {
 		return nil, fmt.Errorf("glob posts: %w", err)
@@ -35,6 +36,9 @@ func LoadPosts(dir string) ([]Post, error) {
 		p, err := loadPost(f)
 		if err != nil {
 			return nil, fmt.Errorf("load %s: %w", f, err)
+		}
+		if p.Draft && !includeDrafts {
+			continue
 		}
 		posts = append(posts, p)
 	}

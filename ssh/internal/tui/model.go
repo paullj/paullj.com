@@ -19,6 +19,8 @@ import (
 	"github.com/paullj/paullj.com/internal/images"
 )
 
+var draftMarker = lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Render("* ")
+
 type tab int
 
 const (
@@ -523,7 +525,11 @@ func (m Model) openPost(p content.Post) (Model, tea.Cmd) {
 	// Build post header
 	dim := m.dimColor()
 	var header strings.Builder
-	header.WriteString(lipgloss.NewStyle().Bold(true).Foreground(dim).Render(p.Title) + "\n")
+	titleStr := lipgloss.NewStyle().Bold(true).Foreground(dim).Render(p.Title)
+	if p.Draft {
+		titleStr = draftMarker + titleStr
+	}
+	header.WriteString(titleStr + "\n")
 	header.WriteString(lipgloss.NewStyle().Foreground(dim).Render(p.Date.Format("Jan 2006")) + "\n")
 	if p.Description != "" {
 		header.WriteString("\n")
@@ -696,13 +702,17 @@ func (m Model) viewHome(maxW int) (string, string) {
 		for i := 0; i < recentCount; i++ {
 			p := m.posts[i]
 			date := lipgloss.NewStyle().Foreground(dim).Render(p.Date.Format("Jan 2006"))
+			draft := ""
+			if p.Draft {
+				draft = draftMarker
+			}
 
 			if m.homeSection == homeSectionPosts && i == m.homePostIdx {
 				title := lipgloss.NewStyle().Bold(true).Foreground(accent).Render(p.Title)
-				b.WriteString("> " + date + " " + title + "\n")
+				b.WriteString("> " + date + " " + draft + title + "\n")
 			} else {
 				title := lipgloss.NewStyle().Foreground(lipgloss.Color("252")).Render(p.Title)
-				b.WriteString("  " + date + " " + title + "\n")
+				b.WriteString("  " + date + " " + draft + title + "\n")
 			}
 		}
 	}
@@ -782,11 +792,15 @@ func (m Model) viewPosts(maxW int) (string, string) {
 		p := filtered[i]
 		date := p.Date.Format("Jan 2006")
 		datePad := strings.Repeat(" ", dateCol-len(date))
+		draft := ""
+		if p.Draft {
+			draft = draftMarker
+		}
 
 		if i == m.postsIdx {
 			dateStr := lipgloss.NewStyle().Foreground(dim).Render(date + datePad)
 			title := lipgloss.NewStyle().Bold(true).Foreground(accent).Render(p.Title)
-			b.WriteString("> " + dateStr + title + "\n")
+			b.WriteString("> " + dateStr + draft + title + "\n")
 			if p.Description != "" {
 				desc := lipgloss.NewStyle().Foreground(dim).Width(titleWidth).Render(p.Description)
 				pad := strings.Repeat(" ", dateCol+2)
@@ -801,7 +815,7 @@ func (m Model) viewPosts(maxW int) (string, string) {
 		} else {
 			dateStr := lipgloss.NewStyle().Foreground(dim).Render(date + datePad)
 			title := lipgloss.NewStyle().Foreground(lipgloss.Color("252")).Render(p.Title)
-			b.WriteString("  " + dateStr + title + "\n")
+			b.WriteString("  " + dateStr + draft + title + "\n")
 			if p.Description != "" {
 				desc := lipgloss.NewStyle().Foreground(dim).Width(titleWidth).Render(p.Description)
 				pad := strings.Repeat(" ", dateCol+2)
