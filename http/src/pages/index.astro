@@ -1,13 +1,14 @@
 ---
 import { getCollection } from "astro:content";
 import { content } from "../site.config";
+import Base from "../layouts/Base.astro";
 
 const posts = (await getCollection("posts")).sort(
 	(a, b) => b.data.date.getTime() - a.data.date.getTime(),
 );
-const _recentPosts = posts.slice(0, content.recent_posts_limit);
+const recentPosts = posts.slice(0, content.recent_posts_limit);
 
-function _formatDate(date: Date) {
+function formatDate(date: Date) {
 	return date.toLocaleDateString("en-GB", {
 		day: "numeric",
 		month: "short",

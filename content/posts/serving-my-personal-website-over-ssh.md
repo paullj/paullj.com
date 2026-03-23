@@ -38,7 +38,8 @@ draft: true
 - Side-by-side SSH vs HTTP: same post rendered in terminal vs browser
 - Chafa image rendering: show how images look in the terminal
   - it's not great, but it's charming
-- adding in the gfm features like footnotes, alerts and ascii mermaid diagrams. mermaid diagrams are fun but the produced outputs don't always work well in the terminal
+- adding in the gfm features like footnotes, alerts.
+- tried getting ascii mermaid diagrams, but the existing tools didn't support enough features and changing the diargams to work for ascii rendering broke the web version.
 - Goal was as close to feature parity as makes sense - read the same content either way
 
 ## Try it

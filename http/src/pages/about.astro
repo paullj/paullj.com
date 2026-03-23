@@ -1,8 +1,9 @@
 ---
 import fs from "node:fs";
 import path from "node:path";
+import Base from "../layouts/Base.astro";
 
-const _aboutContent = fs.readFileSync(
+const aboutContent = fs.readFileSync(
 	path.resolve(process.cwd(), "../content/about.md"),
 	"utf-8",
 );

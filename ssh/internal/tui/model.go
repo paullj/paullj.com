@@ -85,12 +85,6 @@ type Model struct {
 	postVP   viewport.Model
 	currPost *content.Post
 
-	// Mermaid modal state
-	mermaidDiagrams []content.MermaidDiagram
-	mermaidModalVP  viewport.Model
-	inMermaidModal  bool
-	mermaidHScroll  int
-
 	lastKey string
 
 	width  int
@@ -187,12 +181,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.aboutOK {
 			m.aboutVP.SetWidth(cw)
 			m.aboutVP.SetHeight(vpH)
-		}
-		if m.inMermaidModal && len(m.mermaidDiagrams) > 0 {
-			modalVPH := m.height - 2
-			m.mermaidModalVP.SetWidth(m.width)
-			m.mermaidModalVP.SetHeight(modalVPH)
-			m.mermaidModalVP.SetContent(hscroll(m.mermaidDiagrams[0].Rendered, m.mermaidHScroll, m.width))
 		}
 		m.ready = true
 		return m, nil
@@ -415,11 +403,6 @@ func (m Model) updatePosts(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) updatePostDetail(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
-	// Mermaid modal handles its own keys
-	if m.inMermaidModal {
-		return m.updateMermaidModal(msg)
-	}
-
 	key := msg.String()
 	prevKey := m.lastKey
 	m.lastKey = ""
@@ -451,16 +434,6 @@ func (m Model) updatePostDetail(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	case "G":
 		m.postVP.GotoBottom()
 		return m, nil
-	case "enter":
-		if len(m.mermaidDiagrams) > 0 {
-			m.inMermaidModal = true
-			m.mermaidHScroll = 0
-			vpH := m.height - 2 // footer: separator + help line
-			vpW := m.width
-			m.mermaidModalVP = viewport.New(viewport.WithWidth(vpW), viewport.WithHeight(vpH))
-			m.mermaidModalVP.SetContent(hscroll(m.mermaidDiagrams[0].Rendered, 0, vpW))
-			return m, nil
-		}
 	}
 
 	var cmd tea.Cmd
@@ -468,51 +441,9 @@ func (m Model) updatePostDetail(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m Model) updateMermaidModal(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
-	switch msg.String() {
-	case "q", "esc":
-		m.inMermaidModal = false
-		return m, nil
-	case "ctrl+c":
-		return m, tea.Quit
-	case "h", "left":
-		if m.mermaidHScroll > 0 {
-			m.mermaidHScroll--
-			m.mermaidModalVP.SetContent(hscroll(m.mermaidDiagrams[0].Rendered, m.mermaidHScroll, m.width))
-		}
-		return m, nil
-	case "l", "right":
-		m.mermaidHScroll++
-		m.mermaidModalVP.SetContent(hscroll(m.mermaidDiagrams[0].Rendered, m.mermaidHScroll, m.width))
-		return m, nil
-	}
-
-	var cmd tea.Cmd
-	m.mermaidModalVP, cmd = m.mermaidModalVP.Update(msg)
-	return m, cmd
-}
-
-func hscroll(content string, offset, width int) string {
-	lines := strings.Split(content, "\n")
-	var out []string
-	for _, line := range lines {
-		runes := []rune(line)
-		if offset >= len(runes) {
-			out = append(out, "")
-			continue
-		}
-		end := offset + width
-		if end > len(runes) {
-			end = len(runes)
-		}
-		out = append(out, string(runes[offset:end]))
-	}
-	return strings.Join(out, "\n")
-}
-
 func (m Model) openPost(p content.Post) (Model, tea.Cmd) {
 	cw := m.contentWidth()
-	rendered, mermaidOverflows, err := content.RenderMarkdownWithImages(
+	rendered, err := content.RenderMarkdownWithImages(
 		p.Body, cw-4, m.theme.String(), m.imageMode,
 		m.theme == themeDark, m.cache, m.diskCache, m.cfg.SSH.Images.MaxSize,
 		m.cfg.SSH.Images.FetchTimeout.Duration, m.cfg.SSH.Images.MaxAsciiWidth,
@@ -544,9 +475,6 @@ func (m Model) openPost(p content.Post) (Model, tea.Cmd) {
 	vp.SetContent(header.String() + rendered)
 	m.postVP = vp
 	m.currPost = &p
-	m.mermaidDiagrams = mermaidOverflows
-	m.inMermaidModal = false
-	m.mermaidHScroll = 0
 	m.inPostDetail = true
 	m.returnTab = m.activeTab
 	return m, nil
@@ -593,12 +521,6 @@ func (m Model) View() tea.View {
 
 	if !m.splash.done {
 		v.SetContent(m.viewSplash())
-		return v
-	}
-
-	// Mermaid modal is a separate full-screen view
-	if m.inMermaidModal {
-		v.SetContent(m.viewMermaidModal())
 		return v
 	}
 
@@ -845,37 +767,10 @@ func (m Model) viewPostDetail(maxW int) (string, string) {
 	sep := lipgloss.NewStyle().Foreground(dim).Render(strings.Repeat("─", maxW))
 	var helpParts []string
 	helpParts = append(helpParts, "esc/q back")
-	if len(m.mermaidDiagrams) > 0 {
-		helpParts = append(helpParts, "enter diagram")
-	}
 	helpParts = append(helpParts, "gg top", "t theme", fmt.Sprintf("%3.f%%", m.postVP.ScrollPercent()*100), m.theme.String())
 	helpText := lipgloss.NewStyle().Foreground(dim).Render(strings.Join(helpParts, " · "))
 	footer := sep + "\n" + helpText
 	return m.postVP.View(), footer
-}
-
-func (m Model) viewMermaidModal() string {
-	dim := m.dimColor()
-
-	body := m.mermaidModalVP.View()
-
-	sep := lipgloss.NewStyle().Foreground(dim).Render(strings.Repeat("─", m.width))
-	helpText := lipgloss.NewStyle().Foreground(dim).
-		Render("h/l scroll horizontally · j/k scroll vertically · esc close")
-	footer := sep + "\n" + helpText
-
-	footerH := lipgloss.Height(footer)
-	bodyH := m.height - footerH
-	if bodyH < 1 {
-		bodyH = 1
-	}
-
-	styledBody := lipgloss.NewStyle().
-		Width(m.width).
-		Height(bodyH).
-		Render(body)
-
-	return lipgloss.JoinVertical(lipgloss.Left, styledBody, footer)
 }
 
 // Theme colors
