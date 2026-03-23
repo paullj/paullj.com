@@ -12,7 +12,19 @@
 		"indentStyle": "tab"
 	},
 	"linter": {
-		"enabled": true
+		"enabled": true,
+		"rules": {
+			"style": {
+				"noDescendingSpecificity": "off"
+			}
+		}
+	},
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "off"
+			}
+		}
 	},
 	"overrides": [
 		{
