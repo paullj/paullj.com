@@ -7,10 +7,6 @@ A blog served over ssh and http, built with go and astro, [bubble tea](https://g
 
 ![Demo](docs/demo.gif)
 
-```bash
-ssh ssh.paullj.com
-```
-
 ## Prerequisites
 
 - [mise](https://mise.jdx.dev) — manages all project tooling (go, linters, vhs, etc.)
