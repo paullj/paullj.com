@@ -20,11 +20,12 @@ type Post struct {
 	Title       string    `yaml:"title"`
 	Date        time.Time `yaml:"date"`
 	Description string    `yaml:"description"`
+	Draft       bool      `yaml:"draft"`
 	Slug        string
 	Body        string
 }
 
-func LoadPosts(dir string) ([]Post, error) {
+func LoadPosts(dir string, includeDrafts bool) ([]Post, error) {
 	files, err := filepath.Glob(filepath.Join(dir, "*.md"))
 	if err != nil {
 		return nil, fmt.Errorf("glob posts: %w", err)
@@ -35,6 +36,9 @@ func LoadPosts(dir string) ([]Post, error) {
 		p, err := loadPost(f)
 		if err != nil {
 			return nil, fmt.Errorf("load %s: %w", f, err)
+		}
+		if p.Draft && !includeDrafts {
+			continue
 		}
 		posts = append(posts, p)
 	}
@@ -83,6 +87,14 @@ func RenderMarkdown(content string, width int, style string) (string, error) {
 // RenderMarkdownWithImages renders markdown and replaces image placeholders
 // with terminal-encoded images.
 func RenderMarkdownWithImages(content string, width int, style string, mode images.ImageMode, darkTheme bool, cache *images.Cache, diskCache *images.DiskCache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int, contentDir string) (string, error) {
+	// Step 1: Extract alerts before Glamour mangles blockquote syntax
+	content, alertRefs := extractAlerts(content)
+
+	// Step 2: Extract footnote definitions and references
+	content, footnoteDefs := extractFootnoteDefs(content)
+	content, footnoteOrder := extractFootnoteRefs(content, footnoteDefs)
+
+	// Step 3: Extract images
 	type imageRef struct {
 		marker string
 		alt    string
@@ -106,6 +118,15 @@ func RenderMarkdownWithImages(content string, width int, style string, mode imag
 		padded := regexp.MustCompile(`[^\n]*` + regexp.QuoteMeta(ref.marker) + `[^\n]*`)
 		rendered = padded.ReplaceAllLiteralString(rendered, encoded)
 	}
+
+	// Replace alert placeholders with styled output
+	rendered = replaceAlerts(rendered, alertRefs, width, style, darkTheme)
+
+	// Replace footnote ref placeholders with styled [N]
+	rendered = replaceFootnoteRefs(rendered, footnoteOrder, darkTheme)
+
+	// Append footnote section at bottom
+	rendered += renderFootnoteSection(footnoteDefs, footnoteOrder, width, style, darkTheme)
 
 	return rendered, nil
 }

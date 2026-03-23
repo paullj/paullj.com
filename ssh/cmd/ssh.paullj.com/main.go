@@ -13,6 +13,7 @@ import (
 
 func main() {
 	configPath := flag.String("config", "config.yaml", "path to config file")
+	dev := flag.Bool("dev", false, "enable dev mode (show draft posts)")
 	flag.Parse()
 
 	cfg, err := config.Load(*configPath)
@@ -25,6 +26,7 @@ func main() {
 
 	store, err := content.NewPostStore(
 		cfg.Content.PostsDir,
+		*dev,
 		cache,
 		diskCache,
 		cfg.SSH.Images.MaxSize,

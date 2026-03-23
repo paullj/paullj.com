@@ -19,6 +19,8 @@ import (
 	"github.com/paullj/paullj.com/internal/images"
 )
 
+var draftMarker = lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Render("* ")
+
 type tab int
 
 const (
@@ -82,6 +84,8 @@ type Model struct {
 	aboutOK  bool
 	postVP   viewport.Model
 	currPost *content.Post
+
+	lastKey string
 
 	width  int
 	height int
@@ -399,13 +403,37 @@ func (m Model) updatePosts(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) updatePostDetail(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
-	switch msg.String() {
+	key := msg.String()
+	prevKey := m.lastKey
+	m.lastKey = ""
+
+	switch key {
 	case "q", "esc":
 		m.inPostDetail = false
 		m.activeTab = m.returnTab
 		return m, nil
 	case "ctrl+c":
 		return m, tea.Quit
+	case "t":
+		if m.theme == themeDark {
+			m.theme = themeLight
+		} else {
+			m.theme = themeDark
+		}
+		if m.currPost != nil {
+			return m.openPost(*m.currPost)
+		}
+		return m, nil
+	case "g":
+		if prevKey == "g" {
+			m.postVP.GotoTop()
+			return m, nil
+		}
+		m.lastKey = "g"
+		return m, nil
+	case "G":
+		m.postVP.GotoBottom()
+		return m, nil
 	}
 
 	var cmd tea.Cmd
@@ -425,9 +453,26 @@ func (m Model) openPost(p content.Post) (Model, tea.Cmd) {
 		rendered = p.Body
 	}
 
+	// Build post header
+	dim := m.dimColor()
+	var header strings.Builder
+	titleStr := lipgloss.NewStyle().Bold(true).Foreground(dim).Render(p.Title)
+	if p.Draft {
+		titleStr = draftMarker + titleStr
+	}
+	header.WriteString(titleStr + "\n")
+	header.WriteString(lipgloss.NewStyle().Foreground(dim).Render(p.Date.Format("Jan 2006")) + "\n")
+	if p.Description != "" {
+		header.WriteString("\n")
+		header.WriteString(lipgloss.NewStyle().Foreground(dim).Italic(true).Render(p.Description) + "\n")
+	}
+	header.WriteString("\n")
+	header.WriteString(lipgloss.NewStyle().Foreground(dim).Render(strings.Repeat("─", cw-4)) + "\n")
+	header.WriteString("\n")
+
 	vpH := m.viewportHeight()
 	vp := viewport.New(viewport.WithWidth(m.contentWidth()), viewport.WithHeight(vpH))
-	vp.SetContent(rendered)
+	vp.SetContent(header.String() + rendered)
 	m.postVP = vp
 	m.currPost = &p
 	m.inPostDetail = true
@@ -579,13 +624,17 @@ func (m Model) viewHome(maxW int) (string, string) {
 		for i := 0; i < recentCount; i++ {
 			p := m.posts[i]
 			date := lipgloss.NewStyle().Foreground(dim).Render(p.Date.Format("Jan 2006"))
+			draft := ""
+			if p.Draft {
+				draft = draftMarker
+			}
 
 			if m.homeSection == homeSectionPosts && i == m.homePostIdx {
 				title := lipgloss.NewStyle().Bold(true).Foreground(accent).Render(p.Title)
-				b.WriteString("> " + date + " " + title + "\n")
+				b.WriteString("> " + date + " " + draft + title + "\n")
 			} else {
 				title := lipgloss.NewStyle().Foreground(lipgloss.Color("252")).Render(p.Title)
-				b.WriteString("  " + date + " " + title + "\n")
+				b.WriteString("  " + date + " " + draft + title + "\n")
 			}
 		}
 	}
@@ -665,11 +714,15 @@ func (m Model) viewPosts(maxW int) (string, string) {
 		p := filtered[i]
 		date := p.Date.Format("Jan 2006")
 		datePad := strings.Repeat(" ", dateCol-len(date))
+		draft := ""
+		if p.Draft {
+			draft = draftMarker
+		}
 
 		if i == m.postsIdx {
 			dateStr := lipgloss.NewStyle().Foreground(dim).Render(date + datePad)
 			title := lipgloss.NewStyle().Bold(true).Foreground(accent).Render(p.Title)
-			b.WriteString("> " + dateStr + title + "\n")
+			b.WriteString("> " + dateStr + draft + title + "\n")
 			if p.Description != "" {
 				desc := lipgloss.NewStyle().Foreground(dim).Width(titleWidth).Render(p.Description)
 				pad := strings.Repeat(" ", dateCol+2)
@@ -684,7 +737,7 @@ func (m Model) viewPosts(maxW int) (string, string) {
 		} else {
 			dateStr := lipgloss.NewStyle().Foreground(dim).Render(date + datePad)
 			title := lipgloss.NewStyle().Foreground(lipgloss.Color("252")).Render(p.Title)
-			b.WriteString("  " + dateStr + title + "\n")
+			b.WriteString("  " + dateStr + draft + title + "\n")
 			if p.Description != "" {
 				desc := lipgloss.NewStyle().Foreground(dim).Width(titleWidth).Render(p.Description)
 				pad := strings.Repeat(" ", dateCol+2)
@@ -710,9 +763,12 @@ func (m Model) viewPosts(maxW int) (string, string) {
 
 func (m Model) viewPostDetail(maxW int) (string, string) {
 	dim := m.dimColor()
+
 	sep := lipgloss.NewStyle().Foreground(dim).Render(strings.Repeat("─", maxW))
-	helpText := lipgloss.NewStyle().Foreground(dim).
-		Render(fmt.Sprintf("esc/q back · %3.f%% · %s", m.postVP.ScrollPercent()*100, m.theme))
+	var helpParts []string
+	helpParts = append(helpParts, "esc/q back")
+	helpParts = append(helpParts, "gg top", "t theme", fmt.Sprintf("%3.f%%", m.postVP.ScrollPercent()*100), m.theme.String())
+	helpText := lipgloss.NewStyle().Foreground(dim).Render(strings.Join(helpParts, " · "))
 	footer := sep + "\n" + helpText
 	return m.postVP.View(), footer
 }

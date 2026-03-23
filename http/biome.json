@@ -1,0 +1,46 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.4.8/schema.json",
+	"files": {
+		"includes": ["**", "!dist", "!.astro", "!node_modules"]
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	},
+	"formatter": {
+		"indentStyle": "tab"
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"style": {
+				"noDescendingSpecificity": "off"
+			}
+		}
+	},
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "off"
+			}
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["**/*.astro"],
+			"linter": {
+				"rules": {
+					"style": {
+						"useConst": "off",
+						"useImportType": "off"
+					},
+					"correctness": {
+						"noUnusedVariables": "off",
+						"noUnusedImports": "off"
+					}
+				}
+			}
+		}
+	]
+}

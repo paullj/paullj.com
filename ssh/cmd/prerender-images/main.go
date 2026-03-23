@@ -21,7 +21,7 @@ func main() {
 		log.Fatalf("loading config: %v", err)
 	}
 
-	posts, err := content.LoadPosts(cfg.Content.PostsDir)
+	posts, err := content.LoadPosts(cfg.Content.PostsDir, true)
 	if err != nil {
 		log.Fatalf("loading posts: %v", err)
 	}

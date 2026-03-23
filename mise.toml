@@ -8,43 +8,69 @@ vhs = "latest"
 node = "22"
 pnpm = "latest"
 
-[tasks.dev]
-description = "Run with hot reload"
-run = "air -c ssh/.air.toml"
+# General tasks
 
-[tasks.build]
-description = "Build binary"
-run = "cd ssh && go build -o ../ssh.paullj.com ./cmd/ssh.paullj.com"
+[tasks.lint]
+description = "Run all linters"
+depends = ["ssh:lint", "http:lint"]
 
-[tasks.run]
-description = "Build and run"
-depends = ["build"]
-run = "./ssh.paullj.com"
+[tasks.format]
+description = "Format all code"
+depends = ["ssh:format", "http:format"]
 
-[tasks.dev-ssh]
-description = "Connect to local SSH server"
-run = "ssh -o StrictHostKeyChecking=no -p 2222 localhost"
+[tasks.test]
+description = "Run all tests"
+depends = ["ssh:test"]
+
+[tasks.check]
+description = "Lint + format check all"
+depends = ["ssh:check", "http:check"]
 
 [tasks.clean]
 description = "Remove build artifacts"
 run = "rm -f ssh.paullj.com id_ed25519 id_ed25519.pub"
 
-[tasks.lint]
-description = "Run linter"
-run = "cd ssh && golangci-lint run ./..."
-
-[tasks.fmt]
-description = "Format code"
-run = "cd ssh && gofumpt -w ."
-
-[tasks.check]
-description = "Lint + fmt check"
-depends = ["lint"]
-run = "cd ssh && gofumpt -d . | grep -q . && echo 'needs formatting' && exit 1 || true"
-
 [tasks.deploy]
 description = "Deploy to Fly"
 run = "flyctl deploy --remote-only"
+
+# SSH tasks
+
+[tasks."ssh:dev"]
+description = "Run SSH server with hot reload"
+run = "air -c ssh/.air.toml"
+
+[tasks."ssh:build"]
+description = "Build SSH binary"
+run = "cd ssh && go build -o ../ssh.paullj.com ./cmd/ssh.paullj.com"
+
+[tasks."ssh:run"]
+description = "Build and run SSH server"
+depends = ["ssh:build"]
+run = "./ssh.paullj.com"
+
+[tasks."ssh:connect"]
+description = "Connect to local SSH server"
+run = "ssh -o StrictHostKeyChecking=no -p 2222 localhost"
+
+[tasks."ssh:test"]
+description = "Run Go tests"
+run = "cd ssh && go test ./..."
+
+[tasks."ssh:lint"]
+description = "Run Go linter"
+run = "cd ssh && golangci-lint run ./..."
+
+[tasks."ssh:format"]
+description = "Format Go code"
+run = "cd ssh && gofumpt -w ."
+
+[tasks."ssh:check"]
+description = "Lint + format check"
+depends = ["ssh:lint"]
+run = "cd ssh && gofumpt -d . | grep -q . && echo 'needs formatting' && exit 1 || true"
+
+# HTTP tasks
 
 [tasks."http:dev"]
 description = "Run Astro dev server"
@@ -57,6 +83,18 @@ run = "cd http && pnpm build"
 [tasks."http:preview"]
 description = "Preview Astro build"
 run = "cd http && pnpm preview"
+
+[tasks."http:lint"]
+description = "Lint JS/TS with Biome"
+run = "cd http && pnpm exec biome lint ."
+
+[tasks."http:format"]
+description = "Format JS/TS with Biome"
+run = "cd http && pnpm exec biome format --write ."
+
+[tasks."http:check"]
+description = "Lint + format check with Biome"
+run = "cd http && pnpm exec biome check ."
 
 [tasks."http:install"]
 description = "Install http dependencies"

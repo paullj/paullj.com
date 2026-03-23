@@ -5,16 +5,20 @@ import Base from "../../layouts/Base.astro";
 import Paginator from "../../components/Paginator.astro";
 
 export const getStaticPaths = (async ({ paginate }) => {
-  const posts = (await getCollection("posts")).sort(
-    (a, b) => b.data.date.getTime() - a.data.date.getTime(),
-  );
-  return paginate(posts, { pageSize: 10 });
+	const posts = (await getCollection("posts")).sort(
+		(a, b) => b.data.date.getTime() - a.data.date.getTime(),
+	);
+	return paginate(posts, { pageSize: 10 });
 }) satisfies GetStaticPaths;
 
 const { page } = Astro.props;
 
 function formatDate(date: Date) {
-  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+	return date.toLocaleDateString("en-GB", {
+		day: "numeric",
+		month: "short",
+		year: "numeric",
+	});
 }
 ---
 
