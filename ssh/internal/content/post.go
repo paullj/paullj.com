@@ -82,7 +82,18 @@ func RenderMarkdown(content string, width int, style string) (string, error) {
 
 // RenderMarkdownWithImages renders markdown and replaces image placeholders
 // with terminal-encoded images.
-func RenderMarkdownWithImages(content string, width int, style string, mode images.ImageMode, darkTheme bool, cache *images.Cache, diskCache *images.DiskCache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int, contentDir string) (string, error) {
+func RenderMarkdownWithImages(content string, width int, style string, mode images.ImageMode, darkTheme bool, cache *images.Cache, diskCache *images.DiskCache, maxSize int, fetchTimeout time.Duration, maxAsciiWidth int, contentDir string) (string, []MermaidDiagram, error) {
+	// Step 1: Extract alerts before Glamour mangles blockquote syntax
+	content, alertRefs := extractAlerts(content)
+
+	// Step 2: Extract footnote definitions and references
+	content, footnoteDefs := extractFootnoteDefs(content)
+	content, footnoteOrder := extractFootnoteRefs(content, footnoteDefs)
+
+	// Step 3: Extract mermaid diagrams
+	content, mermaidRefs := extractMermaid(content)
+
+	// Step 4: Extract images
 	type imageRef struct {
 		marker string
 		alt    string
@@ -98,7 +109,7 @@ func RenderMarkdownWithImages(content string, width int, style string, mode imag
 
 	rendered, err := RenderMarkdown(replaced, width, style)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	for _, ref := range refs {
@@ -107,7 +118,20 @@ func RenderMarkdownWithImages(content string, width int, style string, mode imag
 		rendered = padded.ReplaceAllLiteralString(rendered, encoded)
 	}
 
-	return rendered, nil
+	// Replace mermaid placeholders with rendered diagrams
+	var mermaidOverflows []MermaidDiagram
+	rendered, mermaidOverflows = replaceMermaid(rendered, mermaidRefs, width, darkTheme)
+
+	// Replace alert placeholders with styled output
+	rendered = replaceAlerts(rendered, alertRefs, width, style, darkTheme)
+
+	// Replace footnote ref placeholders with styled [N]
+	rendered = replaceFootnoteRefs(rendered, footnoteOrder, darkTheme)
+
+	// Append footnote section at bottom
+	rendered += renderFootnoteSection(footnoteDefs, footnoteOrder, width, style, darkTheme)
+
+	return rendered, mermaidOverflows, nil
 }
 
 func ImageCacheKey(url string, width int, mode images.ImageMode, darkTheme bool, maxAsciiWidth int) string {

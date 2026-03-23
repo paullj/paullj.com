@@ -44,14 +44,14 @@ At a very high level, the schematic for my PCB looks a bit like the diagram belo
 
 ```mermaid
 graph LR
-    A(USB Port) <--> B(ESD Protection)
-    B <--> C(Voltage Regulator)
-    C <--> D(RP2040)
-    D <--> E(Analog Multiplexers)
-    E <--> F(Hall Effect Sensors)
-    D <--> G(Bootselect Switch)
-    D <--> H(QSPI Flash)
-    D <--> I(Crystal Oscillator)
+    USB Port --> ESD Protection
+    ESD Protection --> Voltage Regulator
+    Voltage Regulator --> RP2040
+    RP2040 --> Analog Multiplexers
+    Analog Multiplexers --> Hall Effect Sensors
+    RP2040 --> Bootselect Switch
+    RP2040 --> QSPI Flash
+    RP2040 --> Crystal Oscillator
 ```
 
 There are also a bunch of other passive components like resistors and capacitors that are required for the circuit to function correctly, as well as a debug LED. I won't go into detail about these components, but they are all included in the full schematic which you can see below.

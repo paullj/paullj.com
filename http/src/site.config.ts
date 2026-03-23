@@ -9,17 +9,17 @@ export const httpUrl: string = config.http_url;
 export const sshAddress: string = config.ssh_address;
 
 export const content: {
-  name: string;
-  subtitle: string;
-  description: string;
-  recent_posts_limit: number;
-  about_path: string;
-  posts_dir: string;
-  links: Array<{ name: string; url: string }>;
+	name: string;
+	subtitle: string;
+	description: string;
+	recent_posts_limit: number;
+	about_path: string;
+	posts_dir: string;
+	links: Array<{ name: string; url: string }>;
 } = config.content;
 
 export const http: {
-  title: string;
-  lang: string;
-  og_locale: string;
+	title: string;
+	lang: string;
+	og_locale: string;
 } = config.http;

@@ -1,15 +1,12 @@
 ---
 import type { MarkdownHeading } from "astro";
-import Base from "./Base.astro";
-import TOC from "../components/blog/TOC.astro";
-import Comments from "../components/Comments.astro";
 
 interface Props {
-  title: string;
-  description?: string;
-  ogImage?: string;
-  articleDate?: string;
-  headings: Array<MarkdownHeading>;
+	title: string;
+	description?: string;
+	ogImage?: string;
+	articleDate?: string;
+	headings: Array<MarkdownHeading>;
 }
 
 const { title, description, ogImage, articleDate, headings } = Astro.props;

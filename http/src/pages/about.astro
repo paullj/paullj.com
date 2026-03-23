@@ -1,11 +1,10 @@
 ---
-import Base from "../layouts/Base.astro";
 import fs from "node:fs";
 import path from "node:path";
 
-const aboutContent = fs.readFileSync(
-  path.resolve(process.cwd(), "../content/about.md"),
-  "utf-8"
+const _aboutContent = fs.readFileSync(
+	path.resolve(process.cwd(), "../content/about.md"),
+	"utf-8",
 );
 ---
 

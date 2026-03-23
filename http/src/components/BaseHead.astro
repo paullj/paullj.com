@@ -4,18 +4,26 @@ import "@fontsource/jetbrains-mono";
 import "../styles/global.css";
 
 interface Props {
-  title: string;
-  description?: string;
-  ogImage?: string;
-  articleDate?: string;
+	title: string;
+	description?: string;
+	ogImage?: string;
+	articleDate?: string;
 }
 
-const { title, description = content.description, ogImage, articleDate } = Astro.props;
+const {
+	title,
+	description = content.description,
+	ogImage,
+	articleDate,
+} = Astro.props;
 
 const titleSeparator = "—";
-const siteTitle = `${title} ${titleSeparator} ${http.title}`;
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-const socialImageURL = new URL(ogImage ? ogImage : "/social-card.png", Astro.url).href;
+const _siteTitle = `${title} ${titleSeparator} ${http.title}`;
+const _canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const _socialImageURL = new URL(
+	ogImage ? ogImage : "/social-card.png",
+	Astro.url,
+).href;
 ---
 
 <meta charset="utf-8" />

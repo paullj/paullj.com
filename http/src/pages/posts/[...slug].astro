@@ -1,23 +1,26 @@
 ---
 import { getCollection, render } from "astro:content";
-import BlogPost from "../../layouts/BlogPost.astro";
 
 export async function getStaticPaths() {
-  const posts = await getCollection("posts");
-  return posts.map((post) => ({
-    params: { slug: post.id },
-    props: { post },
-  }));
+	const posts = await getCollection("posts");
+	return posts.map((post) => ({
+		params: { slug: post.id },
+		props: { post },
+	}));
 }
 
 const { post } = Astro.props;
 const { Content, headings } = await render(post);
 
-const ogImage = post.data.ogImage ?? `/og-image/${post.id}.png`;
-const articleDate = (post.data.updatedAt ?? post.data.date).toISOString();
+const _ogImage = post.data.ogImage ?? `/og-image/${post.id}.png`;
+const _articleDate = (post.data.updatedAt ?? post.data.date).toISOString();
 
-function formatDate(date: Date) {
-  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+function _formatDate(date: Date) {
+	return date.toLocaleDateString("en-GB", {
+		day: "numeric",
+		month: "short",
+		year: "numeric",
+	});
 }
 ---
 
