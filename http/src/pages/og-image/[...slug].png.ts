@@ -57,7 +57,7 @@ const markup = (title: string, pubDate: string) =>
   </div>`;
 
 export async function GET({ params: { slug } }: APIContext) {
-	const posts = await getCollection("posts");
+	const posts = await getCollection("posts", ({ data }) => !data.draft);
 	const post = posts.find((p) => p.id === slug);
 	const title = post?.data.title ?? http.title;
 	const postDate = formatDate(
@@ -74,7 +74,7 @@ export async function GET({ params: { slug } }: APIContext) {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-	const posts = await getCollection("posts");
+	const posts = await getCollection("posts", ({ data }) => !data.draft);
 	return posts
 		.filter(({ data }) => !data.ogImage)
 		.map(({ id }) => ({ params: { slug: id } }));

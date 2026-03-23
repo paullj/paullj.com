@@ -3,9 +3,9 @@ import { getCollection } from "astro:content";
 import { content } from "../site.config";
 import Base from "../layouts/Base.astro";
 
-const posts = (await getCollection("posts")).sort(
-	(a, b) => b.data.date.getTime() - a.data.date.getTime(),
-);
+const posts = (
+	await getCollection("posts", ({ data }) => import.meta.env.DEV || !data.draft)
+).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 const recentPosts = posts.slice(0, content.recent_posts_limit);
 
 function formatDate(date: Date) {
@@ -50,7 +50,7 @@ function formatDate(date: Date) {
               {formatDate(post.data.date)}
             </time>
             <a href={`/posts/${post.id}`} class="cactus-link">
-              {post.data.title}
+              {post.data.draft && <span class="text-yellow-500">* </span>}{post.data.title}
             </a>
           </div>
         </li>
