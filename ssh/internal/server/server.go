@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
 	"os/signal"
@@ -68,17 +69,27 @@ func Run(cfg *config.Config, store *content.PostStore, cache *images.Cache, disk
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGTERM)
+	defer signal.Stop(done)
 
+	serverErr := make(chan error, 1)
 	log.Printf("starting SSH server on %s", addr)
 	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			log.Fatalf("server error: %v", err)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
+			serverErr <- err
 		}
+		close(serverErr)
 	}()
 
-	<-done
-	log.Println("shutting down...")
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdownCancel()
-	return srv.Shutdown(shutdownCtx)
+	select {
+	case <-done:
+		log.Println("shutting down...")
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer shutdownCancel()
+		if err := srv.Shutdown(shutdownCtx); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
+			return err
+		}
+		return nil
+	case err := <-serverErr:
+		return err
+	}
 }
